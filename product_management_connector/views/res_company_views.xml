@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Copyright 2022 Manuel Regidor <manuel.regidor@sygel.es>
+    License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+-->
+<odoo>
+    <record id="product_management_connector_view_company_form" model="ir.ui.view">
+        <field name="name">product.management.connector.view.company.form</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form" />
+        <field name="arch" type="xml">
+            <page name="ecommerce_connector" position="inside">
+                <group>
+                    <group>
+                        <field name="accept_product_management_connector"/>
+                    </group>
+                </group>
+            </page>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,88 @@
+# Copyright 2022 Manuel Regidor <manuel.regidor@sygel.es>
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+
+from odoo import fields, models, api
+
+
+class EcommerceConnection(models.Model):
+    _name = "ecommerce.connection"
+
+    @api.model
+    def _selection_languages(self):
+        return self.env['res.lang'].get_installed()
+
+    name = fields.Char(
+        string="Name",
+        required=True
+    )
+    active = fields.Boolean(
+        string="Active",
+        default=True
+    )
+    company_id = fields.Many2one(
+        string="Company",
+        comodel_name="res.company",
+        required=True,
+        default=lambda self: self.env.company,
+    )
+    ecommerce_id = fields.Integer(
+        string="Ecommerce ID",
+        required=True
+    )
+    lang = fields.Selection(
+        _selection_languages,
+        string='Language',
+        required=True,
+        help="Language used for writing operation in multilanguage fields."
+    )
+    product_search_rule = fields.Selection([
+        ("ecommerce_id", "Ecommerce ID"),
+        ("sku", "SKU"),
+        ("barcode", "Barcode")
+    ],
+        string="Product Search Rule",
+        default="ecommerce_id",
+        required=True
+    )
+    contact_search_rule = fields.Selection([
+        ("ecommerce_id", "Ecommerce ID"),
+        ("email", "Email"),
+        ("vat", "VAT"),
+        ("contact_info", "Contact Info")
+    ],
+        string="Contact Search Rule",
+        default="ecommerce_id",
+        required=True
+    )
+    shipping_address_search_rule = fields.Selection([
+        ("ecommerce_id", "Ecommerce ID"),
+        ("email", "Email"),
+        ("contact_info", "Contact Info")
+    ],
+        string="Shipping Address Search Rule",
+        default="ecommerce_id",
+        required=True
+    )
+    invoice_address_search_rule = fields.Selection([
+        ("ecommerce_id", "Ecommerce ID"),
+        ("email", "Email"),
+        ("contact_info", "Contact Info")
+    ],
+        string="Invoice Address Search Rule",
+        default="ecommerce_id",
+        required=True
+    )
+    create_products_single_company = fields.Boolean(
+        string="Create Products for Single Company"
+    )
+    create_contacts_single_company = fields.Boolean(
+        string="Create Contacts for Single Company"
+    )
+
+    _sql_constraints = [
+        (
+            "ecommerce_id_name_unique",
+            "unique(ecommerce_id, company_id)",
+            "Ecommerce ID must be unique.",
+        )
+    ]

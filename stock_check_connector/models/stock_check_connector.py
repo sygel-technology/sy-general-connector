@@ -189,7 +189,7 @@ class StockCheckConnector(models.Model):
                 'status': 'OK',
                 'result': result_list
             }
-        return json.dumps(vals)
+        return vals
 
     @api.model
     def external_stock_check(self, values):

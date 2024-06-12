@@ -63,14 +63,14 @@ class EcommerceConnector(models.Model):
                 partner_id = ecommerce_partner_id.partner_id
         elif ecommerce_connection.contact_search_rule == 'email':
             partner_id = self.env['res.partner'].search([
-                ('email', '=', values.get('customer').get('email')),
+                ('email', '=ilike', values.get('customer').get('email')),
                 ('type', '=', 'contact'),
                 ('parent_id', '=', False),
                 ('company_id', 'in', [False, int(values.get('companyId'))])
             ], limit=1)
         elif ecommerce_connection.contact_search_rule == 'vat':
             partner_id = self.env['res.partner'].search([
-                ('vat', '=', values.get('customer').get('vat')),
+                ('vat', '=ilike', values.get('customer').get('vat')),
                 ('type', '=', 'contact'),
                 ('parent_id', '=', False),
                 ('company_id', 'in', [False, int(values.get('companyId'))])
@@ -83,11 +83,11 @@ class EcommerceConnector(models.Model):
             partner_id = self.env['res.partner'].search([
                 ('type', '=', 'contact'),
                 ('parent_id', '=', False),
-                ('name', '=', name),
-                ('email', '=', values.get('customer').get('email')),
-                ('phone', '=', values.get('customer').get('phone') if values.get('customer').get('phone') is not None else False),
-                ('mobile', '=', values.get('customer').get('mobile') if values.get('customer').get('mobile') is not None else False),
-                ('vat', '=', values.get('customer').get('vat') if values.get('customer').get('vat') is not None else False),
+                ('name', '=ilike', name),
+                ('email', '=ilike', values.get('customer').get('email')),
+                ('phone', '=ilike', values.get('customer').get('phone') if values.get('customer').get('phone') is not None else False),
+                ('mobile', '=ilike', values.get('customer').get('mobile') if values.get('customer').get('mobile') is not None else False),
+                ('vat', '=ilike', values.get('customer').get('vat') if values.get('customer').get('vat') is not None else False),
                 ('company_type', '=', contact_type),
                 ('company_id', 'in', [False, int(values.get('companyId'))])
             ], limit=1)
@@ -318,7 +318,7 @@ class EcommerceConnector(models.Model):
             :param company: record of res.company
         """
         delivery_carrier_id = self.env['delivery.carrier'].search([
-            ('name', '=', shipment.get('method'))
+            ('name', '=ilike', shipment.get('method'))
         ], limit=1)
         taxes = fiscal_position.with_company(company).map_tax(delivery_carrier_id.product_id.taxes_id).filtered(
             lambda a: a.company_id.id == company
@@ -328,7 +328,6 @@ class EcommerceConnector(models.Model):
             'name': shipment.get('method'),
             'product_uom_qty': 1,
             'price_unit': shipment.get('unitPrice'),
-            # Qué es original unit price
             'tax_id': taxes.ids,
             'ecommerce_shipping_id': shipment.get('id')
         }
@@ -579,7 +578,7 @@ class EcommerceConnector(models.Model):
                 errors = self._write_errors(errors, "Paid amount cannot be higher than total amount.")
             for payment in values.get('payments'):
                 payment_mode_id = self.env['account.payment.mode'].search([
-                    ('name', 'ilike', payment.get('method')),
+                    ('name', '=ilike', payment.get('method')),
                     ('company_id', '=', int(values.get('companyId')))
                 ], limit=1)
                 if not payment_mode_id:
@@ -597,7 +596,7 @@ class EcommerceConnector(models.Model):
         if values.get('shipments'):
             for shipment in values.get('shipments'):
                 if not self.env['delivery.carrier'].search([
-                    ('name', 'ilike', shipment.get('method'))
+                    ('name', '=ilike', shipment.get('method'))
                 ], limit=1):
                     errors = self._write_errors(errors, "%s shipment method is not in the system." % shipment.get('method'))
         return errors
@@ -961,7 +960,7 @@ class EcommerceConnector(models.Model):
         """
         fiscal_position_type = 'b2c' if values.get('customer').get('typeClient') == 'individual' else 'b2b'
         company_type = 'company' if values.get('customer').get('typeClient') == 'business' else 'person'
-        sii_simplified_invoice = True if not values.get('customer').get('vat') else False
+        # sii_simplified_invoice = True if not values.get('customer').get('vat') else False
         name = "%s %s" % (
             values.get('customer').get('firstname'),
             values.get('customer').get('lastname')
@@ -983,7 +982,7 @@ class EcommerceConnector(models.Model):
             'company_type': company_type,
             'lang': values.get('customer').get('languageCode'),
             'fiscal_position_type': fiscal_position_type,
-            'sii_simplified_invoice': sii_simplified_invoice,
+            # 'sii_simplified_invoice': sii_simplified_invoice,
             'phone': values.get('customer').get('phone'),
             'mobile': values.get('customer').get('mobile'),
         }
@@ -1165,8 +1164,8 @@ class EcommerceConnector(models.Model):
             vals['company_id'] = ecommerce_connection.company_id.id
         template = self.env['product.template'].create(vals)
         template.product_variant_id.write({
-            'default_code': line.get('productSku'),
-            'barcode': line.get('productBarcode'),
+            'default_code': line.get('productSku') if line.get('productSku') else False,
+            'barcode': line.get('productBarcode') if line.get('productBarcode') else False,
         })
         self.env['ecommerce.product.template'].create({
             'product_template_id': template.id,
@@ -1224,7 +1223,7 @@ class EcommerceConnector(models.Model):
         """
         for payment in values.get('payments'):
             payment_mode_id = self.env['account.payment.mode'].search([
-                ('name', 'ilike', payment.get('method')),
+                ('name', '=ilike', payment.get('method')),
                 ('company_id', '=', int(values.get('companyId')))
             ], limit=1)
             wizard = self.env['account.payment.register'].with_context(
@@ -1250,7 +1249,7 @@ class EcommerceConnector(models.Model):
         attribute_ids = self.env['product.attribute.value']
         for v in variants:
             product_attribute_id = self.env['product.attribute'].search([
-                ('name', '=', v)
+                ('name', '=ilike', v)
             ], limit=1)
             if not product_attribute_id:
                 product_attribute_id = self.env['product.attribute'].create({
@@ -1350,7 +1349,7 @@ class EcommerceConnector(models.Model):
             'message_out': json.dumps(vals, indent=4),
             'ecommerce_connection_id': ecommerce_connection.id if ecommerce_connection else False,
         })
-        return json.dumps(vals)
+        return vals
 
     @api.model
     def external_create_sale(self, values):
@@ -1377,6 +1376,9 @@ class EcommerceConnector(models.Model):
         if not ecommerce_connection_id:
             errors = self._write_errors(errors, "Ecommerce Connection not found.")
             return self._create_sale(connector_call, values, errors, ecommerce_connection_id)
+
+        # Put lang in context
+        self = self.with_context(lang=ecommerce_connection_id.lang)
             
         errors = self._check_mandatory_fields(errors, values, company_id, ecommerce_connection_id)
 
@@ -1441,8 +1443,8 @@ class EcommerceConnector(models.Model):
         })
         if values.get('payments'):
             payment_mode_id = self.env['account.payment.mode'].search([
-                ('name', 'ilike', values.get('payments')[0].get('method')),
-                ('company_id', '=', values.get('companyId'))
+                ('name', '=ilike', values.get('payments')[0].get('method')),
+                ('company_id', '=', int(values.get('companyId')))
             ], limit=1)
             if payment_mode_id:
                 new_order.update({
@@ -1555,4 +1557,4 @@ class EcommerceConnector(models.Model):
                 'status': 'error',
                 'error_message': errors
             }            
-        return json.dumps(vals)
+        return vals

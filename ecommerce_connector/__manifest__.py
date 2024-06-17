@@ -4,7 +4,7 @@
 {
     "name": "Ecommerce Connector",
     "summary": "Ecommerce Connector",
-    "version": "14.0.2.0.0",
+    "version": "14.0.2.0.1",
     "category": "Custom",
     "author": "Sygel",
     "license": "AGPL-3",
@@ -17,7 +17,7 @@
         "account_payment_sale",
         "base_vat",
         "account_fiscal_position_partner_type",
-        "l10n_es_aeat_sii_oca",
+        # "l10n_es_aeat_sii_oca",
         "product",
         "delivery",
     ],

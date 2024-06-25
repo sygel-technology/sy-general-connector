@@ -7,6 +7,6 @@ Available addons
 ----------------
 addon | version | summary
 --- | --- | ---
-[nombre_tecnico](nombre_tecnico/) | 15.0.1.0.0 | descripcion
+[ecommerce_connector](ecommerce_connector/) | 15.0.1.0.0 | Ecommerce general connector
 
 [//]: # (end addons)

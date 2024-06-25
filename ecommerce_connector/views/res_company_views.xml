@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Copyright 2022 Manuel Regidor <manuel.regidor@sygel.es>
+    License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+-->
+<odoo>
+    <record id="ecommerce_connector_view_company_form" model="ir.ui.view">
+        <field name="name">ecommerce.connector.view.company.form</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form" />
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Ecommerce Connector" name="ecommerce_connector">
+                    <group>
+                        <group>
+                            <field name="accept_ecommerce_connector"/>
+                            <field name="sale_order_type_id" attrs="{'invisible': [('accept_ecommerce_connector', '=', False)]}"/>
+                            <field name="search_name_lang" attrs="{'invisible': [('accept_ecommerce_connector', '=', False)], 'required': [('accept_ecommerce_connector', '=', True)]}"/>
+                        </group>
+                        <group>
+                            <field name="ecommerce_connector_create_invoice" attrs="{'invisible': [('accept_ecommerce_connector', '=', False)]}"/>
+                            <field name="ecommerce_connector_validate_invoice" attrs="{'invisible': ['|', ('accept_ecommerce_connector', '=', False), ('ecommerce_connector_create_invoice', '=', False)]}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Product Search" attrs="{'invisible': [('accept_ecommerce_connector', '=', False)]}">
+                            <field name="product_search_rule" attrs="{'required': [('accept_ecommerce_connector', '=', True)]}"/>
+                        </group>
+                        <group string="Contact Search"  attrs="{'invisible': [('accept_ecommerce_connector', '=', False)]}">
+                            <field name="contact_search_rule" attrs="{'required': [('accept_ecommerce_connector', '=', True)]}"/>
+                            <field name="shipping_address_search_rule" attrs="{'required': [('accept_ecommerce_connector', '=', True)]}"/>
+                            <field name="invoice_address_search_rule" attrs="{'required': [('accept_ecommerce_connector', '=', True)]}"/>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+</odoo>

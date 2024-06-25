@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2022 Manuel Regidor <manuel.regidor@sygel.es>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <menuitem
+        id="ecommerce_connector_root"
+        name="Ecommerce Connector"
+        web_icon="ecommerce_connector,static/description/icon.png"
+    />
+    <menuitem
+        id="ecommerce_connector_call_menu"
+        parent="ecommerce_connector_root"
+        action="ecommerce_connector_call_action"
+        name="Connector Calls"
+    />
+</odoo>

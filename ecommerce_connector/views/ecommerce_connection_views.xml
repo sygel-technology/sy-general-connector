@@ -22,6 +22,8 @@
                             <group>
                                 <field name="company_id"/>
                                 <field name="lang"/>
+                                <field name="use_odoo_so_sequence"/>
+                                <field name="duplicate_invoice_name"/>
                             </group>
                     </group>
                     <group>

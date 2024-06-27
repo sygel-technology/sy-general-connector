@@ -69,12 +69,32 @@ class EcommerceConnector(models.Model):
                 ('company_id', 'in', [False, int(values.get('companyId'))])
             ], limit=1)
         elif ecommerce_connection.contact_search_rule == 'vat':
-            partner_id = self.env['res.partner'].search([
-                ('vat', '=ilike', values.get('customer').get('vat')),
+            domain = [
                 ('type', '=', 'contact'),
                 ('parent_id', '=', False),
                 ('company_id', 'in', [False, int(values.get('companyId'))])
-            ], limit=1)
+            ]
+            vat = values.get('customer').get('vat')
+            vat_domain = [('vat', '=ilike', vat)]
+            country_id = self.get_country(values.get('shippingAddress').get('countryCode'))
+            if country_id:
+                if vat.startswith(country_id.code):
+                    vat_with_code = vat
+                    vat = vat[len(country_id.code):]
+                else:
+                    vat_with_code = "{}{}".format(
+                        country_id.code,
+                        vat
+                    )
+                vat_domain = [
+                    '|',
+                    ('vat', '=ilike', vat),
+                    ('vat', '=ilike', vat_with_code),
+                ]
+            partner_id = self.env['res.partner'].search(
+                vat_domain + domain,
+                limit=1
+            )
         elif ecommerce_connection.contact_search_rule == 'contact_info':
             name = values.get('customer').get('firstname')
             if values.get('customer').get('lastname'):
@@ -122,16 +142,16 @@ class EcommerceConnector(models.Model):
             country_id = self.get_country(values.get('shippingAddress').get('countryCode'))
             province_id = self.get_province(country_id, values.get('shippingAddress').get('provinceCode'))
             partner_id = partner.child_ids.filtered(
-                lambda a: a.type == 'delivery' and\
-                a.name == name and\
-                a.country_id == country_id and\
-                a.state_id == province_id and\
-                a.street == values.get('shippingAddress').get('street') and\
-                a.street2 == (values.get('shippingAddress').get('street2') if values.get('shippingAddress').get('street2') is not None else False) and\
-                a.city == (values.get('shippingAddress').get('city') if values.get('shippingAddress').get('city') is not None else False) and\
-                a.zip == values.get('shippingAddress').get('postcode') and\
-                a.email == (values.get('shippingAddress').get('email') if values.get('shippingAddress').get('email') is not None else False) and\
-                a.phone == (values.get('shippingAddress').get('phone') if values.get('shippingAddress').get('phone') is not None else False) and\
+                lambda a: a.type == 'delivery' and
+                a.name == name and
+                a.country_id == country_id and
+                a.state_id == province_id and
+                a.street == values.get('shippingAddress').get('street') and
+                a.street2 == (values.get('shippingAddress').get('street2') if values.get('shippingAddress').get('street2') is not None else False) and
+                a.city == (values.get('shippingAddress').get('city') if values.get('shippingAddress').get('city') is not None else False) and
+                a.zip == values.get('shippingAddress').get('postcode') and
+                a.email == (values.get('shippingAddress').get('email') if values.get('shippingAddress').get('email') is not None else False) and
+                a.phone == (values.get('shippingAddress').get('phone') if values.get('shippingAddress').get('phone') is not None else False) and
                 a.mobile == (values.get('shippingAddress').get('mobile') if values.get('shippingAddress').get('mobile') is not None else False)
             )
         if not partner_id:
@@ -165,18 +185,22 @@ class EcommerceConnector(models.Model):
                 name = "%s %s" % (name, values.get('billingAddress').get('lastname'))
             country_id = self.get_country(values.get('billingAddress').get('countryCode'))
             province_id = self.get_province(country_id, values.get('billingAddress').get('provinceCode'))
+            accepted_names = [name]
+            if not ecommerce_connection.duplicate_invoice_name and partner.name.upper() == name.upper():
+                # It is necessary to include both '' and False
+                accepted_names += [False, '']
 
             partner_id = partner.child_ids.filtered(
-                lambda a: a.type == 'invoice' and\
-                a.name == name and\
-                a.country_id == country_id and\
-                a.state_id == province_id and\
-                a.street == values.get('billingAddress').get('street') and\
-                a.street2 == (values.get('billingAddress').get('street2') if values.get('billingAddress').get('street2') is not None else False) and\
-                a.city == (values.get('billingAddress').get('city') if values.get('billingAddress').get('city') is not None else False) and\
-                a.zip == values.get('billingAddress').get('postcode') and\
-                a.email == (values.get('billingAddress').get('email') if values.get('billingAddress').get('email') is not None else False) and\
-                a.phone == (values.get('billingAddress').get('phone') if values.get('billingAddress').get('phone') is not None else False) and\
+                lambda a: a.type == 'invoice' and
+                a.name in accepted_names and
+                a.country_id == country_id and
+                a.state_id == province_id and
+                a.street == values.get('billingAddress').get('street') and
+                a.street2 == (values.get('billingAddress').get('street2') if values.get('billingAddress').get('street2') is not None else False) and
+                a.city == (values.get('billingAddress').get('city') if values.get('billingAddress').get('city') is not None else False) and
+                a.zip == values.get('billingAddress').get('postcode') and
+                a.email == (values.get('billingAddress').get('email') if values.get('billingAddress').get('email') is not None else False) and
+                a.phone == (values.get('billingAddress').get('phone') if values.get('billingAddress').get('phone') is not None else False) and
                 a.mobile == (values.get('billingAddress').get('mobile') if values.get('billingAddress').get('mobile') is not None else False)
             )
         if not partner_id:
@@ -953,14 +977,13 @@ class EcommerceConnector(models.Model):
             'operation': operation
         })
 
-    def _create_new_partner(self, values, ecommerce_connection):
-        """ Returns a res.partner record with a newly created contact
+    def _get_new_partner_vals(self, values, ecommerce_connection):
+        """ Returns a a dictionary with the values for the new partner
 
             :param values: dictionary with the values for the new partner
         """
         fiscal_position_type = 'b2c' if values.get('customer').get('typeClient') == 'individual' else 'b2b'
         company_type = 'company' if values.get('customer').get('typeClient') == 'business' else 'person'
-        # sii_simplified_invoice = True if not values.get('customer').get('vat') else False
         name = "%s %s" % (
             values.get('customer').get('firstname'),
             values.get('customer').get('lastname')
@@ -982,12 +1005,19 @@ class EcommerceConnector(models.Model):
             'company_type': company_type,
             'lang': values.get('customer').get('languageCode'),
             'fiscal_position_type': fiscal_position_type,
-            # 'sii_simplified_invoice': sii_simplified_invoice,
             'phone': values.get('customer').get('phone'),
             'mobile': values.get('customer').get('mobile'),
         }
         if ecommerce_connection.create_contacts_single_company:
             vals['company_id'] = ecommerce_connection.company_id.id
+        return vals
+
+    def _create_new_partner(self, values, ecommerce_connection):
+        """ Returns a res.partner record with a newly created contact
+
+            :param values: dictionary with the values for the new partner
+        """
+        vals = self._get_new_partner_vals(values, ecommerce_connection)
         partner = self.env['res.partner'].create(vals)
         self.env['ecommerce.partner'].create({
             'partner_id': partner.id,
@@ -1025,6 +1055,8 @@ class EcommerceConnector(models.Model):
         vals['parent_id'] = partner.id
         if ecommerce_connection.create_contacts_single_company:
             vals['company_id'] = ecommerce_connection.company_id.id
+        if not ecommerce_connection.duplicate_invoice_name and vals['name'].upper() == partner.name.upper():
+            vals['name'] = ''
         partner = self.env['res.partner'].create(vals)
         if values.get('billingAddress').get('id'):
             self.env['ecommerce.partner'].create({
@@ -1381,7 +1413,7 @@ class EcommerceConnector(models.Model):
         self = self.with_context(lang=ecommerce_connection_id.lang)
             
         errors = self._check_mandatory_fields(errors, values, company_id, ecommerce_connection_id)
-
+        number = values.get('number')
         if self.env['sale.order'].search([
             ('ecommerce_id', '=', int(values.get('id'))),
             ('company_id', '=', company_id.id),
@@ -1390,7 +1422,7 @@ class EcommerceConnector(models.Model):
             errors = self._write_errors(
                 errors,
                 "Sale %s (id %s) is already imported." % (
-                    values.get('number'),
+                    number,
                     values.get('id')
                 )
             )
@@ -1408,7 +1440,7 @@ class EcommerceConnector(models.Model):
 
         new_order = {}
         partner_id = self._get_contact(values, ecommerce_connection_id)
-        shippingAddress_id = self._get_shipping_contact(partner_id, values, ecommerce_connection_id)
+        shipping_address_id = self._get_shipping_contact(partner_id, values, ecommerce_connection_id)
         invoice_address_id = self._get_invoice_contact(partner_id, values, ecommerce_connection_id)
         currency_id = self.env['res.currency'].search([
             ('name', '=', values.get('currencyCode'))
@@ -1425,13 +1457,16 @@ class EcommerceConnector(models.Model):
         errors = self._create_products(errors, values.get('lines'), ecommerce_connection_id)
         if errors:
             return self._create_sale(connector_call, values, errors, ecommerce_connection_id)
-        fiscal_position_id = self._get_fiscal_position(company_id.country_id, shippingAddress_id, values, company_id)
+        fiscal_position_id = self._get_fiscal_position(company_id.country_id, shipping_address_id, values, company_id)
+        if ecommerce_connection_id.use_odoo_so_sequence:
+            new_order['client_order_ref'] = number
+        else:
+            new_order['name'] = number
         new_order.update({
             'ecommerce_id': values.get('id'),
-            'name': values.get('number'),
             'pricelist_id': pricelist_id.id,
             'partner_id': partner_id.id,
-            'partner_shipping_id': shippingAddress_id.id,
+            'partner_shipping_id': shipping_address_id.id,
             'partner_invoice_id': invoice_address_id.id,
             'fiscal_position_id': fiscal_position_id.id,
             'note': values.get('notes'),
@@ -1450,6 +1485,12 @@ class EcommerceConnector(models.Model):
                 new_order.update({
                     'payment_mode_id': payment_mode_id.id
                 })
+        delivery_carrier = False
+        if values.get('shipments'):
+            delivery_carrier = self.env['delivery.carrier'].search([
+                ('name', '=ilike', values.get('shipments')[0].get('method'))
+            ], limit=1)
+        new_order['carrier_id'] = delivery_carrier and delivery_carrier.id
         order_id = self.env['sale.order'].with_company(company).create(new_order)
         moves = order_id.with_company(company)._create_invoices()
         if moves:

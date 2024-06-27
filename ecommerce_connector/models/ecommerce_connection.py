@@ -35,6 +35,15 @@ class EcommerceConnection(models.Model):
         required=True,
         help="Language used for writing operation in multilanguage fields."
     )
+    use_odoo_so_sequence = fields.Boolean(
+        string="Use Odoo Sales Seq."
+    )
+    duplicate_invoice_name = fields.Boolean(
+        string="Duplicate Name in Invoice Address",
+        help="If checked, the Invoice Address name is set in case it equals "
+        "the customer name. If unchecked, the Invoice Address name is left"
+        "blank when it equals the Customer name."
+    )
     product_search_rule = fields.Selection([
         ("ecommerce_id", "Ecommerce ID"),
         ("sku", "SKU"),

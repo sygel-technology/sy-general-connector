@@ -17,7 +17,6 @@ class EcommerceConnector(models.Model):
 
             :param errors: string with current errors
             :param new_error: string with new error to be added
-            :param mode: 'rp' for receivable/payable or 'other'
         """
         return "%s%s\n" % (errors, new_error)
 
@@ -165,6 +164,7 @@ class EcommerceConnector(models.Model):
 
             :param partner: parent res.partner record
             :param values: dictionary with the contact data
+            :param ecommerce_connection: ecommerce.connection record
         """
         partner_id = False
         if ecommerce_connection.invoice_address_search_rule == 'ecommerce_id':
@@ -359,10 +359,10 @@ class EcommerceConnector(models.Model):
     def _get_order_lines(self, fiscal_position_id, values, ecommerce_connection):
         """ Returns a dictionary with values of all the lines of the new sale
 
-            :param fiscal_position: account.fiscal.position record with the
+            :param fiscal_position_id: account.fiscal.position record with the
                 applied fiscal position
             :param values: dictionary with the order lines info
-            :param company: id of the current company
+            :param ecommerce_connection: record of ecommerce.connection
         """
         company = ecommerce_connection.company_id.id
         order_lines = []
@@ -378,6 +378,7 @@ class EcommerceConnector(models.Model):
         """ Returns a dictionary with values of all the lines of a new credit note
 
             :param line: dictionary with the credit note line info
+            :param ecommerce_connection: record of ecommerce.connection
         """
         product_id = self._find_product(line, ecommerce_connection)
         return {
@@ -390,6 +391,7 @@ class EcommerceConnector(models.Model):
         """ Returns a dictionary with values of all the credit note lines
 
             :param lines: list of dictionaries with the credit note line info
+            :param ecommerce_connection: record of ecommerce.connection
         """
         credit_note_lines = []
         for line in lines:
@@ -446,7 +448,7 @@ class EcommerceConnector(models.Model):
             errors = self._write_errors(errors, "Customer email is missing.")
         if not values.get('customer').get('typeClient'):
             errors = self._write_errors(errors, "Customer type client is missing.")
-        if 'customer.vat' not in excluded_fields and values.get('customer').get('typeClient') == 'businees' and not values.get('customer').get('vat'):
+        if 'customer.vat' not in excluded_fields and values.get('customer').get('typeClient') == 'business' and not values.get('customer').get('vat'):
             errors = self._write_errors(errors, "Customer VAT is missing.")
         
         # Mandatory fields shipping address
@@ -702,6 +704,7 @@ class EcommerceConnector(models.Model):
 
             :param errors: string with the current errors
             :param values: dictionary with values to be checked
+            :param company: res.company record
         """
         if values.get('currencyCode'):
             currency_id = self.env['res.currency'].search([
@@ -788,6 +791,13 @@ class EcommerceConnector(models.Model):
         return errors
 
     def _check_shipping_lines(self, values, move, errors):
+        """ Returns a string with the errors
+
+            :param values: dictionary with the valus to be used to compare to
+                the new invoice lines values
+            :param move: account.move record with the newly created invoice
+            :param errors: string with the current errors
+        """
         if values.get('shipments'):
             for line in values.get('shipments'):
                 """ Returns a string with the errors
@@ -906,6 +916,7 @@ class EcommerceConnector(models.Model):
             :param invoice_id: account.move with the newly created credit note
             :lines lines: list of dictionaries with the values of the credit note
                 lines to compare
+            :param ecommerce_connection: ecommerce.connection record
         """
         for line in lines:
             product_id = self._find_product(line, ecommerce_connection)
@@ -970,6 +981,11 @@ class EcommerceConnector(models.Model):
         }
 
     def _create_connector_call(self, values, operation):
+        """ Returns a dictionary with the values for a new shipping address
+
+            :param values: json values
+            :param operation: whether 'invoice' or 'note'
+        """
         return self.env['ecommerce.connector.call'].create({
             'ecommerce_origin': values.get('origin'),
             'datetime': datetime.now(),
@@ -981,6 +997,7 @@ class EcommerceConnector(models.Model):
         """ Returns a a dictionary with the values for the new partner
 
             :param values: dictionary with the values for the new partner
+            :param ecommerce_connection: ecommerce.connection record
         """
         fiscal_position_type = 'b2c' if values.get('customer').get('typeClient') == 'individual' else 'b2b'
         company_type = 'company' if values.get('customer').get('typeClient') == 'business' else 'person'
@@ -1016,6 +1033,7 @@ class EcommerceConnector(models.Model):
         """ Returns a res.partner record with a newly created contact
 
             :param values: dictionary with the values for the new partner
+            :param ecommerce_connection: ecommerce.connection record
         """
         vals = self._get_new_partner_vals(values, ecommerce_connection)
         partner = self.env['res.partner'].create(vals)
@@ -1031,6 +1049,7 @@ class EcommerceConnector(models.Model):
 
             :param values: dictionary with the values for the new partner
             :param partner: res.partner record of the parent contact
+            :param ecommerce_connection: ecommerce.connection record
         """
         vals = self._delivery_address_values(values)
         vals['parent_id'] = partner.id
@@ -1050,6 +1069,7 @@ class EcommerceConnector(models.Model):
 
             :param values: dictionary with the values for the new partner
             :param partner: res.partner record of the parent contact
+            :param ecommerce_connection: ecommerce.connection record
         """
         vals = self._invoice_address_values(values)
         vals['parent_id'] = partner.id
@@ -1071,6 +1091,7 @@ class EcommerceConnector(models.Model):
 
             :param template: product.template record
             :param line: dictionary with the info of a sale line
+            :param ecommerce_connection: ecommerce.connection record
         """
         attributes = self._manage_attributes(line.get('variants'))
         for a in attributes:
@@ -1152,7 +1173,7 @@ class EcommerceConnector(models.Model):
         """ Returns a product.product record if found
 
             :param line: dictionary with the info of a new sale line
-            :param ecommerce_connection: record of the connection
+            :param ecommerce_connection: ecommerce.connection record
         """
         product_id = False
         if ecommerce_connection.product_search_rule == 'ecommerce_id':
@@ -1183,6 +1204,7 @@ class EcommerceConnector(models.Model):
 
             :param line: dictionary with the info of a new sale line
             :param company: res.company record of the current company
+            :param ecommerce_connection: ecommerce.connection record
         """
         tax_id = self._get_tax_by_country(line.get('productTaxCompany'), company.country_id, company)
 
@@ -1214,9 +1236,9 @@ class EcommerceConnector(models.Model):
     def _create_products(self, errors, lines, ecommerce_connection):
         """ Creates all the needed products and returns de found errors
 
+            :param errors: string with the current errors
             :param lines: list of dictionaries with the info of all the new sale lines
-            :param company: res.company record of the current company
-            :param ecommerce.connection: ecommerce.connection
+            :param ecommerce_connection: ecommerce.connection record
         """
         company = ecommerce_connection.company_id
         for line in lines:
@@ -1250,7 +1272,6 @@ class EcommerceConnector(models.Model):
         """ Creates the payments
 
             :param moves: account.move record with the newly created invoice
-            :param company: res.company record of the current company
             :param values: dictionary with the info of the new sale
         """
         for payment in values.get('payments'):

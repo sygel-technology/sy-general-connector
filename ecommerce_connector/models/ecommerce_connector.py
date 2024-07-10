@@ -1493,7 +1493,6 @@ class EcommerceConnector(models.Model):
             'note': values.get('notes'),
             'origin': values.get('origin'),
             'order_line': self._get_order_lines(fiscal_position_id, values, ecommerce_connection_id),
-            'state': 'done',
             'date_order': values.get('dateOrder'),
             'ecommerce_connector_id': ecommerce_connection_id.id
         })
@@ -1513,6 +1512,7 @@ class EcommerceConnector(models.Model):
             ], limit=1)
         new_order['carrier_id'] = delivery_carrier and delivery_carrier.id
         order_id = self.env['sale.order'].with_company(company).create(new_order)
+        order_id.action_confirm()
         moves = order_id.with_company(company)._create_invoices()
         if moves:
             moves.write({

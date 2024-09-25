@@ -11,7 +11,7 @@ class SaleOrderLine(models.Model):
     ecommerce_shipping_id = fields.Integer(string="Ecommerce Shipping ID")
 
     def _prepare_invoice_line(self, **optional_values):
-        res = super(SaleOrderLine, self)._prepare_invoice_line(**optional_values)
+        res = super()._prepare_invoice_line(**optional_values)
         if self.ecommerce_id:
             res["ecommerce_id"] = self.ecommerce_id
         if self.ecommerce_shipping_id:

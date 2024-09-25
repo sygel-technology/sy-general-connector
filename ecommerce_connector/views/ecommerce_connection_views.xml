@@ -29,6 +29,13 @@
                                 <field name="lang" />
                                 <field name="use_odoo_so_sequence" />
                                 <field name="duplicate_invoice_name" />
+                                <field name="check_customer_vat" />
+                                <field name="create_invoice" />
+                                <field
+                                name="validate_invoice"
+                                attrs="{'invisible': [('create_invoice', '=', False)]}"
+                            />
+                                <field name="invoice_policy" />
                             </group>
                     </group>
                     <group>
@@ -52,7 +59,7 @@
         <field name="model">ecommerce.connection</field>
         <field name="type">tree</field>
         <field name="arch" type="xml">
-            <tree string="Ecommerce Connection">
+            <tree>
                 <field name="name" />
                 <field name="ecommerce_id" />
             </tree>

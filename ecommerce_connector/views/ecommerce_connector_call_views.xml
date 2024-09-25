@@ -60,7 +60,6 @@
         <field name="type">tree</field>
         <field name="arch" type="xml">
             <tree
-                string="Ecommerce Connector Call"
                 create="0"
                 decoration-danger="state == 'error'"
                 decoration-success="state == 'done'"

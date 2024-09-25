@@ -9,14 +9,13 @@ class EcommerConnectorCall(models.Model):
     _description = "Ecommerce Connector Call"
     _order = "datetime DESC"
 
-    name = fields.Char(string="Name")
+    name = fields.Char()
     state = fields.Selection(
         [("draft", "Draft"), ("done", "Done"), ("error", "Error")],
-        string="State",
         readonly=True,
         default="draft",
     )
-    ecommerce_origin = fields.Char(string="Ecommerce Origin")
+    ecommerce_origin = fields.Char()
     ecommerce_connection_id = fields.Many2one(
         string="Ecommerce Connection",
         comodel_name="ecommerce.connection",
@@ -29,12 +28,11 @@ class EcommerConnectorCall(models.Model):
         comodel_name="account.move", string="Invoice", readonly=True
     )
     datetime = fields.Datetime(string="Date", readonly=True)
-    message_in = fields.Text(string="Message In", readonly=True)
-    message_out = fields.Text(string="Message Out", readonly=True)
-    error = fields.Text(string="Error", readonly=True)
+    message_in = fields.Text(readonly=True)
+    message_out = fields.Text(readonly=True)
+    error = fields.Text(readonly=True)
     operation = fields.Selection(
         [("invoice", "Invoice"), ("credit", "Credit Note")],
-        string="Operation",
         readonly=True,
     )
 

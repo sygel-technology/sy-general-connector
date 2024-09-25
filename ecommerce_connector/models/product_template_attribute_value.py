@@ -5,11 +5,13 @@ from odoo import models
 
 
 class ProductTemplateAttributeValue(models.Model):
-    _inherit = 'product.template.attribute.value'
+    _inherit = "product.template.attribute.value"
 
     def _get_combination_name(self):
         values = super(ProductTemplateAttributeValue, self)._get_combination_name()
         if not values and self.attribute_line_id.product_template_value_ids:
-            ptavs = self._without_no_variant_attributes().with_prefetch(self._prefetch_ids)
+            ptavs = self._without_no_variant_attributes().with_prefetch(
+                self._prefetch_ids
+            )
             values = ", ".join([ptav.name for ptav in ptavs])
         return values

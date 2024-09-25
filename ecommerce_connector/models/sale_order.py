@@ -5,18 +5,15 @@ from odoo import fields, models
 
 
 class SaleOrder(models.Model):
-    _inherit = 'sale.order'
+    _inherit = "sale.order"
 
-    ecommerce_id = fields.Integer(
-        string="Ecommerce ID"
-    )
+    ecommerce_id = fields.Integer(string="Ecommerce ID")
     ecommerce_connector_id = fields.Many2one(
-        string="Ecommerce Connection",
-        comodel_name="ecommerce.connection"
+        string="Ecommerce Connection", comodel_name="ecommerce.connection"
     )
 
     def _prepare_invoice(self):
         vals = super(SaleOrder, self)._prepare_invoice()
         if self.ecommerce_connector_id:
-            vals['ecommerce_connector_id'] = self.ecommerce_connector_id.id
+            vals["ecommerce_connector_id"] = self.ecommerce_connector_id.id
         return vals

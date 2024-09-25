@@ -7,25 +7,32 @@
         <field name="model">ecommerce.connector.call</field>
         <field name="type">form</field>
         <field name="arch" type="xml">
-            <form string="Ecommerce Connector Call" >
+            <form string="Ecommerce Connector Call">
                 <header>
-                    <field name="state" widget="statusbar"/>
+                    <field name="state" widget="statusbar" />
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <label for="name"/>
-                        <h1><field name="name" class="oe_inline"/></h1>
+                        <label for="name" />
+                        <h1><field name="name" class="oe_inline" /></h1>
                     </div>
                     <group>
                         <group>
                             <field name="datetime" />
-                            <field name="ecommerce_connection_id"/>
+                            <field name="ecommerce_connection_id" />
                             <field name="ecommerce_origin" />
-                            <field name="operation"/>
+                            <field name="operation" />
                         </group>
                         <group>
-                            <field name="sale_order_id" attrs="{'invisible': [('sale_order_id', '=', False)]}"/>
-                            <field name="account_move_id" filename="file_name" attrs="{'invisible': [('account_move_id', '=', False)]}"/>
+                            <field
+                                name="sale_order_id"
+                                attrs="{'invisible': [('sale_order_id', '=', False)]}"
+                            />
+                            <field
+                                name="account_move_id"
+                                filename="file_name"
+                                attrs="{'invisible': [('account_move_id', '=', False)]}"
+                            />
                         </group>
                     </group>
                     <notebook>
@@ -35,7 +42,11 @@
                         <page string="Message Out" anem="message_out">
                             <field name="message_out" />
                         </page>
-                        <page string="Error" anem="error" attrs="{'invisible': [('state', '!=', 'error')]}">
+                        <page
+                            string="Error"
+                            anem="error"
+                            attrs="{'invisible': [('state', '!=', 'error')]}"
+                        >
                             <field name="error" />
                         </page>
                     </notebook>
@@ -48,11 +59,16 @@
         <field name="model">ecommerce.connector.call</field>
         <field name="type">tree</field>
         <field name="arch" type="xml">
-            <tree string="Ecommerce Connector Call" create="0" decoration-danger="state == 'error'" decoration-success="state == 'done'">
+            <tree
+                string="Ecommerce Connector Call"
+                create="0"
+                decoration-danger="state == 'error'"
+                decoration-success="state == 'done'"
+            >
                 <field name="name" />
                 <field name="datetime" />
                 <field name="operation" />
-                <field name="ecommerce_connection_id"/>
+                <field name="ecommerce_connection_id" />
                 <field name="ecommerce_origin" />
                 <field name="state" />
             </tree>
@@ -84,6 +100,8 @@
         <field name="res_model">ecommerce.connector.call</field>
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="ecommerce_connector_call_view_tree" />
-        <field name="context">{"search_default_ecommerce_connector_call_draft":1, "search_default_ecommerce_connector_call_error":1}</field>
+        <field
+            name="context"
+        >{"search_default_ecommerce_connector_call_draft":1, "search_default_ecommerce_connector_call_error":1}</field>
     </record>
 </odoo>

@@ -13,7 +13,7 @@
                 <page string="Ecommerce Connector" name="ecommerce_connector">
                     <group>
                         <group>
-                            <field name="accept_ecommerce_connector"/>
+                            <field name="accept_ecommerce_connector" />
                         </group>
                     </group>
                 </page>

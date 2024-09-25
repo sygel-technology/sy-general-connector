@@ -5,19 +5,15 @@ from odoo import fields, models
 
 
 class SaleOrderLine(models.Model):
-    _inherit = 'sale.order.line'
+    _inherit = "sale.order.line"
 
-    ecommerce_id = fields.Integer(
-        string="Ecommerce ID"
-    )
-    ecommerce_shipping_id = fields.Integer(
-        string="Ecommerce Shipping ID"
-    )
+    ecommerce_id = fields.Integer(string="Ecommerce ID")
+    ecommerce_shipping_id = fields.Integer(string="Ecommerce Shipping ID")
 
     def _prepare_invoice_line(self, **optional_values):
         res = super(SaleOrderLine, self)._prepare_invoice_line(**optional_values)
         if self.ecommerce_id:
-            res['ecommerce_id'] = self.ecommerce_id
+            res["ecommerce_id"] = self.ecommerce_id
         if self.ecommerce_shipping_id:
-            res['ecommerce_shipping_id'] = self.ecommerce_shipping_id
+            res["ecommerce_shipping_id"] = self.ecommerce_shipping_id
         return res

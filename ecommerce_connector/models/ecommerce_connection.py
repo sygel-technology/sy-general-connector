@@ -1,7 +1,7 @@
 # Copyright 2022 Manuel Regidor <manuel.regidor@sygel.es>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-from odoo import fields, models, api
+from odoo import api, fields, models
 
 
 class EcommerceConnection(models.Model):
@@ -9,77 +9,66 @@ class EcommerceConnection(models.Model):
 
     @api.model
     def _selection_languages(self):
-        return self.env['res.lang'].get_installed()
+        return self.env["res.lang"].get_installed()
 
-    name = fields.Char(
-        string="Name",
-        required=True
-    )
-    active = fields.Boolean(
-        string="Active",
-        default=True
-    )
+    name = fields.Char(string="Name", required=True)
+    active = fields.Boolean(string="Active", default=True)
     company_id = fields.Many2one(
         string="Company",
         comodel_name="res.company",
         required=True,
         default=lambda self: self.env.company,
     )
-    ecommerce_id = fields.Integer(
-        string="Ecommerce ID",
-        required=True
-    )
+    ecommerce_id = fields.Integer(string="Ecommerce ID", required=True)
     lang = fields.Selection(
         _selection_languages,
-        string='Language',
+        string="Language",
         required=True,
-        help="Language used for writing operation in multilanguage fields."
+        help="Language used for writing operation in multilanguage fields.",
     )
-    use_odoo_so_sequence = fields.Boolean(
-        string="Use Odoo Sales Seq."
-    )
+    use_odoo_so_sequence = fields.Boolean(string="Use Odoo Sales Seq.")
     duplicate_invoice_name = fields.Boolean(
         string="Duplicate Name in Invoice Address",
         help="If checked, the Invoice Address name is set in case it equals "
         "the customer name. If unchecked, the Invoice Address name is left"
-        "blank when it equals the Customer name."
+        "blank when it equals the Customer name.",
     )
-    product_search_rule = fields.Selection([
-        ("ecommerce_id", "Ecommerce ID"),
-        ("sku", "SKU"),
-        ("barcode", "Barcode")
-    ],
+    product_search_rule = fields.Selection(
+        [("ecommerce_id", "Ecommerce ID"), ("sku", "SKU"), ("barcode", "Barcode")],
         string="Product Search Rule",
         default="ecommerce_id",
-        required=True
+        required=True,
     )
-    contact_search_rule = fields.Selection([
-        ("ecommerce_id", "Ecommerce ID"),
-        ("email", "Email"),
-        ("vat", "VAT"),
-        ("contact_info", "Contact Info")
-    ],
+    contact_search_rule = fields.Selection(
+        [
+            ("ecommerce_id", "Ecommerce ID"),
+            ("email", "Email"),
+            ("vat", "VAT"),
+            ("contact_info", "Contact Info"),
+        ],
         string="Contact Search Rule",
         default="ecommerce_id",
-        required=True
+        required=True,
     )
-    shipping_address_search_rule = fields.Selection([
-        ("ecommerce_id", "Ecommerce ID"),
-        ("email", "Email"),
-        ("contact_info", "Contact Info")
-    ],
+    shipping_address_search_rule = fields.Selection(
+        [
+            ("ecommerce_id", "Ecommerce ID"),
+            ("email", "Email"),
+            ("contact_info", "Contact Info"),
+        ],
         string="Shipping Address Search Rule",
         default="ecommerce_id",
-        required=True
+        required=True,
     )
-    invoice_address_search_rule = fields.Selection([
-        ("ecommerce_id", "Ecommerce ID"),
-        ("email", "Email"),
-        ("contact_info", "Contact Info")
-    ],
+    invoice_address_search_rule = fields.Selection(
+        [
+            ("ecommerce_id", "Ecommerce ID"),
+            ("email", "Email"),
+            ("contact_info", "Contact Info"),
+        ],
         string="Invoice Address Search Rule",
         default="ecommerce_id",
-        required=True
+        required=True,
     )
     create_products_single_company = fields.Boolean(
         string="Create Products for Single Company"

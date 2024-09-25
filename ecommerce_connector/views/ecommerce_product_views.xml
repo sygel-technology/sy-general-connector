@@ -8,8 +8,8 @@
         <field name="type">tree</field>
         <field name="arch" type="xml">
             <tree string="Ecommerce-Product Variant" editable="bottom">
-                <field name="ecommerce_connection_id" options="{'no_create': True}"/>
-                <field name="product_id" options="{'no_create': True}"/>
+                <field name="ecommerce_connection_id" options="{'no_create': True}" />
+                <field name="product_id" options="{'no_create': True}" />
                 <field name="ecommerce_id" />
             </tree>
         </field>
@@ -20,8 +20,8 @@
         <field name="type">tree</field>
         <field name="arch" type="xml">
             <tree string="Ecommerce-Product Variant" editable="bottom">
-                <field name="ecommerce_connection_id" options="{'no_create': True}"/>
-                <field name="product_template_id" options="{'no_create': True}"/>
+                <field name="ecommerce_connection_id" options="{'no_create': True}" />
+                <field name="product_template_id" options="{'no_create': True}" />
                 <field name="ecommerce_id" />
             </tree>
         </field>

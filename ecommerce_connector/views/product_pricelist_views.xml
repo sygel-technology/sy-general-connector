@@ -10,7 +10,7 @@
         <field name="inherit_id" ref="product.product_pricelist_view" />
         <field name="arch" type="xml">
             <field name="discount_policy" position="after">
-                <field name="ecommerce_connector_default_currency"/>
+                <field name="ecommerce_connector_default_currency" />
             </field>
         </field>
     </record>

@@ -7,7 +7,7 @@
         <field name="model">ecommerce.partner</field>
         <field name="type">tree</field>
         <field name="arch" type="xml">
-            <tree string="Ecommerce Partner" editable="bottom">
+            <tree editable="bottom">
                 <field name="ecommerce_connection_id" options="{'no_create': True}" />
                 <field name="partner_id" options="{'no_create': True}" />
                 <field name="ecommerce_id" />

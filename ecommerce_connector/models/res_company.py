@@ -7,4 +7,4 @@ from odoo import fields, models
 class ResCompany(models.Model):
     _inherit = "res.company"
 
-    accept_ecommerce_connector = fields.Boolean(string="Accept Ecommerce Connector")
+    accept_ecommerce_connector = fields.Boolean()

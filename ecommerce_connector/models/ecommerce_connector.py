@@ -19,7 +19,7 @@ class EcommerceConnector(models.Model):
         :param errors: string with current errors
         :param new_error: string with new error to be added
         """
-        return "%s%s\n" % (errors, new_error)
+        return f"{errors}{new_error}\n"
 
     def get_country(self, code):
         """Returns country record identified by the code
@@ -100,7 +100,7 @@ class EcommerceConnector(models.Model):
         elif ecommerce_connection.contact_search_rule == "contact_info":
             name = values.get("customer").get("firstname")
             if values.get("customer").get("lastname"):
-                name = "%s %s" % (name, values.get("customer").get("lastname"))
+                name = "{} {}".format(name, values.get("customer").get("lastname"))
             contact_type = (
                 "person"
                 if values.get("customer").get("typeClient") == "individual"
@@ -172,7 +172,9 @@ class EcommerceConnector(models.Model):
         elif ecommerce_connection.shipping_address_search_rule == "contact_info":
             name = values.get("shippingAddress").get("firstname")
             if values.get("shippingAddress").get("lastname"):
-                name = "%s %s" % (name, values.get("shippingAddress").get("lastname"))
+                name = "{} {}".format(
+                    name, values.get("shippingAddress").get("lastname")
+                )
             country_id = self.get_country(
                 values.get("shippingAddress").get("countryCode")
             )
@@ -255,7 +257,9 @@ class EcommerceConnector(models.Model):
         elif ecommerce_connection.invoice_address_search_rule == "contact_info":
             name = values.get("billingAddress").get("firstname")
             if values.get("billingAddress").get("lastname"):
-                name = "%s %s" % (name, values.get("billingAddress").get("lastname"))
+                name = "{} {}".format(
+                    name, values.get("billingAddress").get("lastname")
+                )
             country_id = self.get_country(
                 values.get("billingAddress").get("countryCode")
             )
@@ -386,19 +390,21 @@ class EcommerceConnector(models.Model):
         fiscal_position_id = False
         national_fp = self._get_national_fiscal_position(country, company)
         europe_group = self.env.ref("base.europe").country_ids - country
-        if tax_rate != 0.0 and delivery_address.country_id.id in europe_group.ids:
-            country_fiscal_position_ids = self.env["account.fiscal.position"].search(
+        # In case l10n_eu_oss module is installed
+        if (
+            hasattr(self.env["account.fiscal.position"], "oss_oca")
+            and tax_rate != 0.0
+            and delivery_address.country_id.id in europe_group.ids
+        ):
+            fiscal_position_id = self.env["account.fiscal.position"].search(
                 [
+                    ("oss_oca", "=", True),
                     ("country_id", "=", delivery_address.country_id.id),
                     ("fiscal_position_type", "=", "b2c"),
                     ("company_id", "=", company.id),
-                ]
+                ],
+                limit=1,
             )
-            fiscal_position_id = country_fiscal_position_ids.filtered(
-                lambda a: "OSS" in a.name
-            )
-            if fiscal_position_id:
-                fiscal_position_id = fiscal_position_id[0]
         elif tax_rate != 0.0 and delivery_address.country_id == company.country_id:
             fiscal_position_id = national_fp
         # This is because of the UK for now
@@ -420,7 +426,6 @@ class EcommerceConnector(models.Model):
             taxes = fiscal_position_id.tax_ids.mapped("tax_dest_id")
             if tax_rate not in taxes.mapped("amount"):
                 fiscal_position_id = False
-        # -----> REVISAR MUY BIEN QUE ENTRA EN ESTE IF INDEPENDIENTEMENTE DEL NÚMERO DE DECIMALES QUE TENGA EL TAX RATE
         if (
             not fiscal_position_id
             and national_fp
@@ -540,22 +545,11 @@ class EcommerceConnector(models.Model):
             )
         return credit_note_lines
 
-    def _check_mandatory_fields(
-        self, errors, values, company_id, ecommerce_connection, excluded_fields=[]
+    def _check_general_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
-        """Returns a string with the errors
-
-        :param errors: string with the current errors
-        :param values: dictionary with the values to be checked
-        :param company_id: res.company record
-        :param ecommerce_connection: ecommerce.connection record
-        :param excluded_fields: list of mandatory fields to be excluded
-        """
-        # General mandatory fields
         if not values.get("id"):
             errors = self._write_errors(errors, "Ecommerce ID is missing.")
-        # if not values.get('token_value'):
-        #     errors = self._write_errors(errors, "Token value is missing.")
         if "number" not in excluded_fields and not values.get("number"):
             errors = self._write_errors(errors, "Ecommerce number is missing.")
         if not values.get("companyId"):
@@ -580,8 +574,11 @@ class EcommerceConnector(models.Model):
             errors = self._write_errors(errors, "Shipping total company is missing.")
         if not values.get("dateOrder"):
             errors = self._write_errors(errors, "Date order is missing.")
+        return errors
 
-        # Mandatory fields Customer
+    def _check_customer_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if not values.get("customer"):
             errors = self._write_errors(errors, "Customer is missing.")
         if "customer.id" not in excluded_fields and not values.get("customer").get(
@@ -602,8 +599,11 @@ class EcommerceConnector(models.Model):
             and not values.get("customer").get("vat")
         ):
             errors = self._write_errors(errors, "Customer VAT is missing.")
+        return errors
 
-        # Mandatory fields shipping address
+    def _check_shipping_address_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if not values.get("shippingAddress"):
             errors = self._write_errors(errors, "Shipping address is missing.")
         if "shippingAddress.id" not in excluded_fields and not values.get(
@@ -632,8 +632,11 @@ class EcommerceConnector(models.Model):
             "shippingAddress"
         ).get("postcode"):
             errors = self._write_errors(errors, "Shipping address postcode is missing.")
+        return errors
 
-        # Mandatory fields billing address
+    def _check_billing_address_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if not values.get("billingAddress"):
             errors = self._write_errors(errors, "Billing address is missing.")
         if "billingAddress.id" not in excluded_fields and not values.get(
@@ -660,8 +663,11 @@ class EcommerceConnector(models.Model):
             "billingAddress"
         ).get("postcode"):
             errors = self._write_errors(errors, "Billing address postcode is missing.")
+        return errors
 
-        # Mandatory fields payment
+    def _check_payment_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if values.get("payments"):
             if any(
                 not payment.get("id")
@@ -672,10 +678,14 @@ class EcommerceConnector(models.Model):
             ):
                 errors = self._write_errors(
                     errors,
-                    "Ecommerce ID, method, unit price and unit price company are mandatory for all payments.",
+                    "Ecommerce ID, method, unit price and unit price company "
+                    "are mandatory for all payments.",
                 )
+        return errors
 
-        # Mandatory fields shipments
+    def _check_shipment_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if values.get("shipments"):
             if any(
                 not shipment.get("id")
@@ -686,10 +696,14 @@ class EcommerceConnector(models.Model):
             ):
                 errors = self._write_errors(
                     errors,
-                    "Ecommerce ID, method, unit price and unit price company are mandatory for all shipments.",
+                    "Ecommerce ID, method, unit price and unit price company "
+                    "are mandatory for all shipments.",
                 )
+        return errors
 
-        # Mandatory fields lines
+    def _check_lines_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if not values.get("lines"):
             errors = self._write_errors(errors, "Lines are missing.")
         if any(
@@ -716,7 +730,8 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "All fields but discount, description, product description or variant in lines are mandatory.",
+                "All fields but discount, description, product description or "
+                "variant in lines are mandatory.",
             )
 
         for line in values.get("lines"):
@@ -729,25 +744,35 @@ class EcommerceConnector(models.Model):
                 errors = self._write_errors(
                     errors, "Tax ID, tax name,and tax rate are mandatory for all taxes."
                 )
+        return errors
 
-        # Missing search fields for products
+    def _check_product_search_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if ecommerce_connection.product_search_rule == "barcode" and any(
             not line.get("productBarcode") for line in values.get("lines")
         ):
             errors = self._write_errors(
                 errors,
-                "Products are searched by barcode. All products need to have a barcode.",
+                "Products are searched by barcode. All products need to have a"
+                " barcode.",
             )
+        return errors
 
-        # Missing search fields for customer
+    def _check_customer_search_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if ecommerce_connection.contact_search_rule == "vat" and not values.get(
             "customer"
         ).get("vat"):
             errors = self._write_errors(
                 errors, "Customer is searched by VAT but it is not provided."
             )
+        return errors
 
-        # Missing search fields for billing address
+    def _check_billing_address_search_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if (
             ecommerce_connection.invoice_address_search_rule == "ecommerce_id"
             and not values.get("billingAddress").get("id")
@@ -762,8 +787,11 @@ class EcommerceConnector(models.Model):
             errors = self._write_errors(
                 errors, "Billing address is searched by email but it is not provided."
             )
+        return errors
 
-        # Missing search fields for shiping address
+    def _check_shipping_address_search_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
         if (
             ecommerce_connection.shipping_address_search_rule == "ecommerce_id"
             and not values.get("shippingAddress").get("id")
@@ -778,6 +806,73 @@ class EcommerceConnector(models.Model):
             errors = self._write_errors(
                 errors, "Shipping address is searched by email but it is not provided."
             )
+        return errors
+
+    def _check_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
+        """Returns a string with the errors
+
+        :param errors: string with the current errors
+        :param values: dictionary with the values to be checked
+        :param company_id: res.company record
+        :param ecommerce_connection: ecommerce.connection record
+        :param excluded_fields: list of mandatory fields to be excluded
+        """
+        # General mandatory fields
+        errors = self._check_general_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Mandatory fields Customer
+        errors = self._check_customer_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Mandatory fields shipping address
+        errors = self._check_shipping_address_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Mandatory fields billing address
+        errors = self._check_billing_address_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Mandatory fields payment
+        errors = self._check_payment_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Mandatory fields shipments
+        errors = self._check_shipment_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Mandatory fields lines
+        errors = self._check_lines_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Missing search fields for products
+        errors = self._check_product_search_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Missing search fields for customer
+        errors = self._check_customer_search_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Missing search fields for billing address
+        errors = self._check_billing_address_search_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
+
+        # Missing search fields for shiping address
+        errors = self._check_shipping_address_search_mandatory_fields(
+            errors, values, company_id, ecommerce_connection, excluded_fields
+        )
 
         return errors
 
@@ -983,6 +1078,31 @@ class EcommerceConnector(models.Model):
                     errors = self._write_errors(errors, "Currency has not been set.")
         return errors
 
+    def _check_vat(self, errors, values):
+        """Returns a string with the errors
+
+        :param errors: string with the current errors
+        :param values: dictionary with values to be checked
+        """
+        if (
+            values.get("customer")
+            and values.get("customer").get("vat")
+            and values.get("customer").get("countryCode")
+            and values.get("customer").get("typeClient")
+        ):
+            country_id = self.get_country(values.get("customer").get("countryCode"))
+            if (
+                country_id
+                and self.env["res.partner"]._run_vat_test(
+                    values.get("customer").get("vat"),
+                    country_id,
+                    values.get("customer").get("typeClient") == "business",
+                )
+                is False
+            ):
+                errors = self._write_errors(errors, "Wrong VAT")
+        return errors
+
     def _check_invoice_province(self, errors, values):
         """Returns a string with the errors
 
@@ -992,7 +1112,7 @@ class EcommerceConnector(models.Model):
         errors = self._check_province_in_country(errors, values)
         return errors
 
-    def _check_values(self, errors, values, company):
+    def _check_values(self, errors, values, company, ecommerce_connection_id):
         """Returns a string with the errors
 
         :param errors: string with the current errors
@@ -1007,6 +1127,8 @@ class EcommerceConnector(models.Model):
         errors = self._check_billing_country_province(errors, values)
         errors = self._check_lang(errors, values)
         errors = self._check_currency(errors, values, company)
+        if ecommerce_connection_id.check_customer_vat:
+            errors = self._check_vat(errors, values)
         return errors
 
     def _check_invoice(self, values, move, errors):
@@ -1037,7 +1159,8 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Total in company currency does not match the value sent with the call.",
+                "Total in company currency does not match the value sent with "
+                "the call.",
             )
         if (
             float_compare(
@@ -1047,7 +1170,8 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Tax amount in sales currency does not match the value sent with the call.",
+                "Tax amount in sales currency does not match the value sent "
+                "with the call.",
             )
         if (
             float_compare(
@@ -1059,7 +1183,8 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Tax amount in company currency does not match the value sent with the call.",
+                "Tax amount in company currency does not match the value sent "
+                "with the call.",
             )
         return errors
 
@@ -1073,7 +1198,7 @@ class EcommerceConnector(models.Model):
         """
         for line in values.get("lines"):
             invoice_line = move.invoice_line_ids.filtered(
-                lambda a: a.ecommerce_id == int(line.get("id"))
+                lambda a, line=line: a.ecommerce_id == int(line.get("id"))
             )
             if (
                 float_compare(
@@ -1085,8 +1210,8 @@ class EcommerceConnector(models.Model):
             ):
                 errors = self._write_errors(
                     errors,
-                    "Total in sales currency in line with ID %s does not match the value sent with the call."
-                    % line.get("id"),
+                    "Total in sales currency in line with ID %s does not match "
+                    "the value sent with the call." % line.get("id"),
                 )
             if (
                 float_compare(
@@ -1098,8 +1223,8 @@ class EcommerceConnector(models.Model):
             ):
                 errors = self._write_errors(
                     errors,
-                    "Subtotal in sales currency in line with ID %s does not match the value sent with the call."
-                    % line.get("id"),
+                    "Subtotal in sales currency in line with ID %s does not "
+                    "match the value sent with the call." % line.get("id"),
                 )
         return errors
 
@@ -1113,15 +1238,8 @@ class EcommerceConnector(models.Model):
         """
         if values.get("shipments"):
             for line in values.get("shipments"):
-                """ Returns a string with the errors
-
-                    :param values: dictionary with the valus to be used to compare to
-                        the new invoice shipping lines values
-                    :param move: account.move record with the newly created invoice
-                    :param errors: string with the current errors
-                """
                 shipping_line = move.invoice_line_ids.filtered(
-                    lambda a: a.ecommerce_shipping_id == int(line.get("id"))
+                    lambda a, line=line: a.ecommerce_shipping_id == int(line.get("id"))
                 )
                 tax_included = shipping_line.tax_ids[0].price_include
                 compare_val = 0.0
@@ -1140,8 +1258,10 @@ class EcommerceConnector(models.Model):
                 ):
                     errors = self._write_errors(
                         errors,
-                        "%s in sales currency in shipping line with ID %s does not match the value sent with the call."
-                        % (compare_field, line.get("id")),
+                        "{} in sales currency in shipping line with ID {} does "
+                        "not match the value sent with the call.".format(
+                            compare_field, line.get("id")
+                        ),
                     )
         return errors
 
@@ -1162,7 +1282,8 @@ class EcommerceConnector(models.Model):
                 )
             for payment in payments:
                 payment_id = payment_ids.filtered(
-                    lambda a: a.ecommerce_payment_id == int(payment.get("id"))
+                    lambda a, payment=payment: a.ecommerce_payment_id
+                    == int(payment.get("id"))
                 )
                 if not payment:
                     errors = self._write_errors(
@@ -1172,7 +1293,7 @@ class EcommerceConnector(models.Model):
                 elif (
                     payment_id
                     and float_compare(
-                        float(payment_id.amount_total_signed),
+                        float(payment_id.amount_signed),
                         float(payment.get("unitPrice")),
                         precision_digits=2,
                     )
@@ -1180,8 +1301,8 @@ class EcommerceConnector(models.Model):
                 ):
                     errors = self._write_errors(
                         errors,
-                        "Amount in invoice currency for payment with ID %s does not match."
-                        % payment.get("id"),
+                        "Amount in invoice currency for payment with ID {} does"
+                        " not match.".format(payment.get("id")),
                     )
         if errors:
             errors = self._write_errors(
@@ -1211,11 +1332,6 @@ class EcommerceConnector(models.Model):
         if not values.get("totalCompany"):
             errors = self._write_errors(errors, "Total company is missing.")
         if values.get("return_type") == "partial":
-            # No sé si estos serán obligatorios
-            # if not values.get('shipping_total_company'):
-            #     errors = self._write_errors(errors, "Shipping total company is missing.")
-            # if not values.get('shipping_total'):
-            #     errors = self._write_errors(errors, "Shipping total is missing.")
             if any(
                 not line.get("productId")
                 or not line.get("quantity")
@@ -1226,7 +1342,8 @@ class EcommerceConnector(models.Model):
             ):
                 errors = self._write_errors(
                     errors,
-                    "Product id, quantity, unit price and unit price company are mandatory for all lines.",
+                    "Product id, quantity, unit price and unit price company "
+                    "are mandatory for all lines.",
                 )
         return errors
 
@@ -1252,23 +1369,156 @@ class EcommerceConnector(models.Model):
             product_id = self._find_product(line, ecommerce_connection)
             product_lines_qty = sum(
                 invoice_id.invoice_line_ids.filtered(
-                    lambda a: a.product_id == product_id
+                    lambda a, product=product_id: a.product_id == product
                 ).mapped("quantity")
             )
             if float(line.get("quantity")) > product_lines_qty:
                 errors = self._write_errors(
                     errors,
-                    "Quantity of product with Ecommerce ID %s is higher than the quantity of product in the invoice."
-                    % line.get("productId"),
+                    "Quantity of product with Ecommerce ID {} is higher than "
+                    "the quantity of product in the invoice.".format(
+                        line.get("productId")
+                    ),
                 )
             return errors
+
+    def _check_invoice_shipping_lines(self, values, move, errors):
+        """Returns a string with the errors
+
+        :param values: dictionary with the valus to be used to compare to
+            the new invoice shipping lines values
+        :param move: account.move record with the newly created invoice
+        :param errors: string with the current errors
+        """
+        if values.get("shipments"):
+            for line in values.get("shipments"):
+                shipping_line = move.invoice_line_ids.filtered(
+                    lambda a, line=line: a.ecommerce_shipping_id == int(line.get("id"))
+                )
+                if (
+                    float_compare(
+                        float(line.get("unitPrice")),
+                        shipping_line.price_subtotal,
+                        precision_digits=2,
+                    )
+                    != 0
+                ):
+                    errors = self._write_errors(
+                        errors,
+                        "Subtotal in sales currency in shipping line with ID "
+                        "{} does not match the value sent with the call.".format(
+                            line.get("id")
+                        ),
+                    )
+        return errors
+
+    def _check_sale_order(self, values, order, errors):
+        """Returns a string with the errors
+
+        :param values: dictionary with the valus to be used to compare to
+            the new sale order values
+        :param move: sale.order record with the newly created invoice
+        :param errors: string with the current errors
+        """
+        if (
+            float_compare(
+                float(values.get("total")), order.amount_total, precision_digits=2
+            )
+            != 0
+        ):
+            errors = self._write_errors(
+                errors,
+                "Total in sales currency does not match the value sent with the call.",
+            )
+        if (
+            float_compare(
+                float(values.get("taxTotal")), order.amount_tax, precision_digits=2
+            )
+            != 0
+        ):
+            errors = self._write_errors(
+                errors,
+                "Tax amount in sales currency does not match the value sent "
+                "with the call.",
+            )
+        return errors
+
+    def _check_sale_lines(self, values, order, errors):
+        """Returns a string with the errors
+
+        :param values: dictionary with the valus to be used to compare to
+            the new sale order lines values
+        :param order: sale.order record with the newly created sale order
+        :param errors: string with the current errors
+        """
+        for line in values.get("lines"):
+            sale_order_line = order.order_line.filtered(
+                lambda a, line=line: a.ecommerce_id == int(line.get("id"))
+            )
+            if (
+                float_compare(
+                    float(line.get("total")),
+                    sale_order_line.price_total,
+                    precision_digits=2,
+                )
+                != 0
+            ):
+                errors = self._write_errors(
+                    errors,
+                    "Total in sales currency in line with ID {} does not match"
+                    " the value sent with the call.".format(line.get("id")),
+                )
+            if (
+                float_compare(
+                    float(line.get("subtotal")),
+                    sale_order_line.price_subtotal,
+                    precision_digits=2,
+                )
+                != 0
+            ):
+                errors = self._write_errors(
+                    errors,
+                    "Subtotal in sales currency in line with ID {} does not "
+                    "match the value sent with the call.".format(line.get("id")),
+                )
+        return errors
+
+    def _check_sale_shipping_lines(self, values, order, errors):
+        """Returns a string with the errors
+
+        :param values: dictionary with the valus to be used to compare to
+            the new invoice shipping lines values
+        :param move: account.move record with the newly created invoice
+        :param errors: string with the current errors
+        """
+        if values.get("shipments"):
+            for line in values.get("shipments"):
+                shipping_line = order.order_line.filtered(
+                    lambda a, line=line: a.ecommerce_shipping_id == int(line.get("id"))
+                )
+                if (
+                    float_compare(
+                        float(line.get("unitPrice")),
+                        shipping_line.price_subtotal,
+                        precision_digits=2,
+                    )
+                    != 0
+                ):
+                    errors = self._write_errors(
+                        errors,
+                        "Subtotal in sales currency in shipping line with ID "
+                        "{} does not match the value sent with the call.".format(
+                            line.get("id")
+                        ),
+                    )
+        return errors
 
     def _invoice_address_values(self, values):
         """Returns a dictionary with the values for a new invoice address
 
         :param values: dictionary with the values of the new invoice address
         """
-        name = "%s %s" % (
+        name = "{} {}".format(
             values.get("billingAddress").get("firstname"),
             values.get("billingAddress").get("lastname"),
         )
@@ -1295,7 +1545,7 @@ class EcommerceConnector(models.Model):
 
         :param values: dictionary with the values of the new shipping address
         """
-        name = "%s %s" % (
+        name = "{} {}".format(
             values.get("shippingAddress").get("firstname"),
             values.get("shippingAddress").get("lastname"),
         )
@@ -1346,7 +1596,7 @@ class EcommerceConnector(models.Model):
             if values.get("customer").get("typeClient") == "business"
             else "person"
         )
-        name = "%s %s" % (
+        name = "{} {}".format(
             values.get("customer").get("firstname"),
             values.get("customer").get("lastname"),
         )
@@ -1375,6 +1625,16 @@ class EcommerceConnector(models.Model):
             "fiscal_position_type": fiscal_position_type,
             "phone": values.get("customer").get("phone"),
             "mobile": values.get("customer").get("mobile"),
+            "ecommerce_partner_ids": [
+                (
+                    0,
+                    0,
+                    {
+                        "ecommerce_connection_id": ecommerce_connection.id,
+                        "ecommerce_id": int(values.get("customer").get("id")),
+                    },
+                ),
+            ],
         }
         if ecommerce_connection.create_contacts_single_company:
             vals["company_id"] = ecommerce_connection.company_id.id
@@ -1388,13 +1648,6 @@ class EcommerceConnector(models.Model):
         """
         vals = self._get_new_partner_vals(values, ecommerce_connection)
         partner = self.env["res.partner"].create(vals)
-        self.env["ecommerce.partner"].create(
-            {
-                "partner_id": partner.id,
-                "ecommerce_connection_id": ecommerce_connection.id,
-                "ecommerce_id": int(values.get("customer").get("id")),
-            }
-        )
         return partner
 
     def _create_new_shipping_partner(self, values, partner, ecommerce_connection):
@@ -1730,7 +1983,7 @@ class EcommerceConnector(models.Model):
             if not product_attribute_id:
                 product_attribute_id = self.env["product.attribute"].create({"name": v})
             attribute_value_id = product_attribute_id.value_ids.filtered(
-                lambda a: a.name == variants.get(v)
+                lambda a, v=v: a.name == variants.get(v)
             )
             if not attribute_value_id:
                 attribute_value_id = self.env["product.attribute.value"].create(
@@ -1788,40 +2041,56 @@ class EcommerceConnector(models.Model):
         move_id=False,
     ):
         if not errors and not payment_errors:
-            file = self.env.ref("account.account_invoices")._render_qweb_pdf(
-                move_id.id
-            )[0]
+            file = False
+            if move_id:
+                file = self.env.ref("account.account_invoices")._render_qweb_pdf(
+                    move_id.id
+                )[0]
+            else:
+                file = self.env.ref("sale.action_report_saleorder")._render_qweb_pdf(
+                    order_id.id
+                )[0]
             file = base64_bytes = b64encode(file)
             file = base64_bytes.decode("utf-8")
-            vals = {
-                "status": "OK",
-                "result": {
-                    "sale_id": order_id.id,
-                    "invoice_id": move_id.id,
-                    "pdf": file,
-                },
-            }
             connector_call.write(
                 {
                     "state": "done",
                     "sale_order_id": order_id.id,
-                    "account_move_id": move_id.id,
+                    "account_move_id": move_id.id if move_id else False,
                 }
             )
+            vals = {
+                "status": "OK",
+                "result": {
+                    "sale_id": order_id.id,
+                    "invoice_id": move_id.id if move_id else False,
+                    "ecommerce_id": values.get("id"),
+                    "pdf": file,
+                },
+            }
         elif payment_errors:
-            move_id.button_draft()
-            move_id[0]._get_reconciled_payments().unlink()
-            vals = {"status": "error", "error_message": payment_errors}
+            if move_id:
+                move_id.button_draft()
+                move_id[0]._get_reconciled_payments().unlink()
+            vals = {
+                "status": "error",
+                "error_message": payment_errors,
+                "ecommerce_id": values.get("id"),
+            }
             connector_call.write(
                 {
                     "state": "error",
                     "error": payment_errors,
                     "sale_order_id": order_id.id,
-                    "account_move_id": move_id.id,
+                    "account_move_id": move_id.id if move_id else False,
                 }
             )
         else:
-            vals = {"status": "error", "error_message": errors}
+            vals = {
+                "status": "error",
+                "error_message": errors,
+                "ecommerce_id": values.get("id"),
+            }
             connector_call.write(
                 {
                     "state": "error",
@@ -1836,6 +2105,95 @@ class EcommerceConnector(models.Model):
                 else False,
             }
         )
+        return vals
+
+    def _get_additional_order_vals(self, values, ecommerce_connection):
+        """To be extended by other modules so additional values can be set
+        for the sale order
+
+        :param values: dictionary with the info of the new sale
+        :param ecommerce_connection: ecommerce.connection instance
+        """
+        return {}
+
+    def _get_order_vals(
+        self, values, ecommerce_connection, company, connector_call, number, errors
+    ):
+        vals = {}
+        partner_id = self._get_contact(values, ecommerce_connection)
+        shipping_address_id = self._get_shipping_contact(
+            partner_id, values, ecommerce_connection
+        )
+        invoice_address_id = self._get_invoice_contact(
+            partner_id, values, ecommerce_connection
+        )
+        currency_id = self.env["res.currency"].search(
+            [("name", "=", values.get("currencyCode"))], limit=1
+        )
+        self._update_currency_exchange_rate(
+            values.get("exchangeRate"), currency_id, company
+        )
+        pricelist_id = False
+        if currency_id:
+            pricelist_id = self.env["product.pricelist"].search(
+                [
+                    ("ecommerce_connector_default_currency", "=", True),
+                    ("currency_id", "=", currency_id.id),
+                ],
+                limit=1,
+            )
+        if not pricelist_id:
+            pricelist_id = self.env.ref("product.list0")
+        errors = self._create_products(
+            errors, values.get("lines"), ecommerce_connection
+        )
+        if errors:
+            return self._create_sale(
+                connector_call, values, errors, ecommerce_connection
+            )
+        fiscal_position_id = self._get_fiscal_position(
+            company.country_id, shipping_address_id, values, company
+        )
+        if ecommerce_connection.use_odoo_so_sequence:
+            vals["client_order_ref"] = number
+        else:
+            vals["name"] = number
+        vals.update(
+            {
+                "ecommerce_id": values.get("id"),
+                "pricelist_id": pricelist_id.id,
+                "partner_id": partner_id.id,
+                "partner_shipping_id": shipping_address_id.id,
+                "partner_invoice_id": invoice_address_id.id,
+                "fiscal_position_id": fiscal_position_id.id,
+                "note": values.get("notes"),
+                "origin": values.get("origin"),
+                "order_line": self._get_order_lines(
+                    fiscal_position_id, values, ecommerce_connection
+                ),
+                "date_order": values.get("dateOrder"),
+                "ecommerce_connector_id": ecommerce_connection.id,
+            }
+        )
+        if ecommerce_connection.invoice_policy:
+            vals["invoice_policy"] = ecommerce_connection.invoice_policy
+        if values.get("payments"):
+            payment_mode_id = self.env["account.payment.mode"].search(
+                [
+                    ("name", "=ilike", values.get("payments")[0].get("method")),
+                    ("company_id", "=", int(values.get("companyId"))),
+                ],
+                limit=1,
+            )
+            if payment_mode_id:
+                vals.update({"payment_mode_id": payment_mode_id.id})
+        delivery_carrier = False
+        if values.get("shipments"):
+            delivery_carrier = self.env["delivery.carrier"].search(
+                [("name", "=ilike", values.get("shipments")[0].get("method"))], limit=1
+            )
+        vals["carrier_id"] = delivery_carrier and delivery_carrier.id
+        vals.update(self._get_additional_order_vals(values, ecommerce_connection))
         return vals
 
     @api.model
@@ -1886,7 +2244,7 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Sale %s (id %s) is already imported." % (number, values.get("id")),
+                "Sale {} (id {}) is already imported.".format(number, values.get("id")),
             )
             return self._create_sale(
                 connector_call, values, errors, ecommerce_connection_id
@@ -1900,103 +2258,44 @@ class EcommerceConnector(models.Model):
                 connector_call, values, errors, ecommerce_connection_id
             )
 
-        errors = self._check_values(errors, values, company_id)
+        errors = self._check_values(errors, values, company_id, ecommerce_connection_id)
         if errors:
             return self._create_sale(
                 connector_call, values, errors, ecommerce_connection_id
             )
 
-        new_order = {}
-        partner_id = self._get_contact(values, ecommerce_connection_id)
-        shipping_address_id = self._get_shipping_contact(
-            partner_id, values, ecommerce_connection_id
+        order_vals = self._get_order_vals(
+            values, ecommerce_connection_id, company_id, connector_call, number, errors
         )
-        invoice_address_id = self._get_invoice_contact(
-            partner_id, values, ecommerce_connection_id
-        )
-        currency_id = self.env["res.currency"].search(
-            [("name", "=", values.get("currencyCode"))], limit=1
-        )
-        self._update_currency_exchange_rate(
-            values.get("exchangeRate"), currency_id, company_id
-        )
-        pricelist_id = False
-        if currency_id:
-            pricelist_id = self.env["product.pricelist"].search(
-                [
-                    ("ecommerce_connector_default_currency", "=", True),
-                    ("currency_id", "=", currency_id.id),
-                ],
-                limit=1,
-            )
-        if not pricelist_id:
-            pricelist_id = self.env.ref("product.list0")
-        errors = self._create_products(
-            errors, values.get("lines"), ecommerce_connection_id
-        )
-        if errors:
-            return self._create_sale(
-                connector_call, values, errors, ecommerce_connection_id
-            )
-        fiscal_position_id = self._get_fiscal_position(
-            company_id.country_id, shipping_address_id, values, company_id
-        )
-        if ecommerce_connection_id.use_odoo_so_sequence:
-            new_order["client_order_ref"] = number
-        else:
-            new_order["name"] = number
-        new_order.update(
-            {
-                "ecommerce_id": values.get("id"),
-                "pricelist_id": pricelist_id.id,
-                "partner_id": partner_id.id,
-                "partner_shipping_id": shipping_address_id.id,
-                "partner_invoice_id": invoice_address_id.id,
-                "fiscal_position_id": fiscal_position_id.id,
-                "note": values.get("notes"),
-                "origin": values.get("origin"),
-                "order_line": self._get_order_lines(
-                    fiscal_position_id, values, ecommerce_connection_id
-                ),
-                "date_order": values.get("dateOrder"),
-                "ecommerce_connector_id": ecommerce_connection_id.id,
-            }
-        )
-        if values.get("payments"):
-            payment_mode_id = self.env["account.payment.mode"].search(
-                [
-                    ("name", "=ilike", values.get("payments")[0].get("method")),
-                    ("company_id", "=", int(values.get("companyId"))),
-                ],
-                limit=1,
-            )
-            if payment_mode_id:
-                new_order.update({"payment_mode_id": payment_mode_id.id})
-        delivery_carrier = False
-        if values.get("shipments"):
-            delivery_carrier = self.env["delivery.carrier"].search(
-                [("name", "=ilike", values.get("shipments")[0].get("method"))], limit=1
-            )
-        new_order["carrier_id"] = delivery_carrier and delivery_carrier.id
-        order_id = self.env["sale.order"].with_company(company).create(new_order)
+
+        order_id = self.env["sale.order"].with_company(company).create(order_vals)
+        order_id.flush()
         order_id.action_confirm()
-        moves = order_id.with_company(company)._create_invoices()
-        if moves:
-            moves.write({"ecommerce_id": order_id.ecommerce_id})
-        errors = self._check_invoice(values, moves[0], errors)
-        errors = self._check_invoice_lines(values, moves[0], errors)
-        errors = self._check_shipping_lines(values, moves[0], errors)
-        if errors:
-            moves.unlink()
-            order_id.action_cancel()
-            order_id.unlink()
+        if ecommerce_connection_id.create_invoice:
+            moves = order_id.with_company(company)._create_invoices()
+            if moves:
+                moves.write({"ecommerce_id": order_id.ecommerce_id})
+            errors = self._check_invoice(values, moves[0], errors)
+            errors = self._check_invoice_lines(values, moves[0], errors)
+            errors = self._check_invoice_shipping_lines(values, moves[0], errors)
+            if errors:
+                moves.unlink()
+                order_id.action_cancel()
+                order_id.unlink()
+            elif ecommerce_connection_id.validate_invoice:
+                moves.with_company(company).action_post()
+                move_id = moves[0]
+                self._create_payments(moves, values)
+                payment_errors = self._check_invoice_payments(
+                    values, move_id, payment_errors
+                )
         else:
-            moves.with_company(company).action_post()
-            move_id = moves[0]
-            self._create_payments(moves, values)
-            payment_errors = self._check_invoice_payments(
-                values, move_id, payment_errors
-            )
+            errors = self._check_sale_order(values, order_id, errors)
+            errors = self._check_sale_lines(values, order_id, errors)
+            errors = self._check_sale_shipping_lines(values, order_id, errors)
+            if errors:
+                order_id.action_cancel()
+                order_id.unlink()
 
         return self._create_sale(
             connector_call,
@@ -2095,13 +2394,12 @@ class EcommerceConnector(models.Model):
                                 )
                                 if not errors:
                                     credit_note.write({"invoice_line_ids": False})
+                                    invoice_lines = self._get_credit_note_lines(
+                                        values.get("lines"),
+                                        ecommerce_connection_id,
+                                    )
                                     credit_note.write(
-                                        {
-                                            "invoice_line_ids": self._get_credit_note_lines(
-                                                values.get("lines"),
-                                                ecommerce_connection_id,
-                                            )
-                                        }
+                                        {"invoice_line_ids": invoice_lines}
                                     )
                                     credit_note.action_post()
                         if not errors:

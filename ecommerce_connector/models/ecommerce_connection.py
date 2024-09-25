@@ -11,8 +11,8 @@ class EcommerceConnection(models.Model):
     def _selection_languages(self):
         return self.env["res.lang"].get_installed()
 
-    name = fields.Char(string="Name", required=True)
-    active = fields.Boolean(string="Active", default=True)
+    name = fields.Char(required=True)
+    active = fields.Boolean(default=True)
     company_id = fields.Many2one(
         string="Company",
         comodel_name="res.company",
@@ -35,7 +35,6 @@ class EcommerceConnection(models.Model):
     )
     product_search_rule = fields.Selection(
         [("ecommerce_id", "Ecommerce ID"), ("sku", "SKU"), ("barcode", "Barcode")],
-        string="Product Search Rule",
         default="ecommerce_id",
         required=True,
     )
@@ -46,7 +45,6 @@ class EcommerceConnection(models.Model):
             ("vat", "VAT"),
             ("contact_info", "Contact Info"),
         ],
-        string="Contact Search Rule",
         default="ecommerce_id",
         required=True,
     )
@@ -56,7 +54,6 @@ class EcommerceConnection(models.Model):
             ("email", "Email"),
             ("contact_info", "Contact Info"),
         ],
-        string="Shipping Address Search Rule",
         default="ecommerce_id",
         required=True,
     )
@@ -66,7 +63,6 @@ class EcommerceConnection(models.Model):
             ("email", "Email"),
             ("contact_info", "Contact Info"),
         ],
-        string="Invoice Address Search Rule",
         default="ecommerce_id",
         required=True,
     )
@@ -76,6 +72,12 @@ class EcommerceConnection(models.Model):
     create_contacts_single_company = fields.Boolean(
         string="Create Contacts for Single Company"
     )
+    check_customer_vat = fields.Boolean()
+    create_invoice = fields.Boolean()
+    invoice_policy = fields.Selection(
+        [("order", "Ordered quantities"), ("delivery", "Delivered quantities")],
+    )
+    validate_invoice = fields.Boolean()
 
     _sql_constraints = [
         (

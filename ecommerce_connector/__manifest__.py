@@ -4,20 +4,18 @@
 {
     "name": "Ecommerce Connector",
     "summary": "General E-Commerce Integration",
-    "version": "14.0.3.0.0",
+    "version": "15.0.1.0.0",
     "category": "Ecommerce",
     "author": "Sygel",
+    "website": "https://github.com/sygel-technology/sy-general-connector",
     "license": "AGPL-3",
     "application": False,
     "installable": True,
     "depends": [
-        "sale",
-        "account",
         "account_payment_mode",
         "account_payment_sale",
         "base_vat",
         "account_fiscal_position_partner_type",
-        "product",
         "delivery",
     ],
     "data": [

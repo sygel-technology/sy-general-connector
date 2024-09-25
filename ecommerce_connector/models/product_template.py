@@ -5,10 +5,10 @@ from odoo import fields, models
 
 
 class ProductTemplate(models.Model):
-    _inherit = 'product.template'
+    _inherit = "product.template"
 
     ecommerce_product_template_ids = fields.One2many(
         string="Ecommerce Product Template",
         comodel_name="ecommerce.product.template",
-        inverse_name="product_template_id"
+        inverse_name="product_template_id",
     )

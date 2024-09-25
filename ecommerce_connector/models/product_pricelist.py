@@ -5,7 +5,7 @@ from odoo import fields, models
 
 
 class ProductPricelist(models.Model):
-    _inherit = 'product.pricelist'
+    _inherit = "product.pricelist"
 
     ecommerce_connector_default_currency = fields.Boolean(
         string="Use with Ecommerce connector"

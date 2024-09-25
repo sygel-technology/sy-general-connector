@@ -9,19 +9,12 @@ class EcommercePartner(models.Model):
     _description = "Ecommerce Partner"
 
     partner_id = fields.Many2one(
-        string="Partner",
-        comodel_name="res.partner",
-        required=True
+        string="Partner", comodel_name="res.partner", required=True
     )
     ecommerce_connection_id = fields.Many2one(
-        string="Ecommerce",
-        comodel_name="ecommerce.connection",
-        required=True
+        string="Ecommerce", comodel_name="ecommerce.connection", required=True
     )
-    ecommerce_id = fields.Integer(
-        string="Ecommerce ID",
-        required=True
-    )
+    ecommerce_id = fields.Integer(string="Ecommerce ID", required=True)
 
     _sql_constraints = [
         (

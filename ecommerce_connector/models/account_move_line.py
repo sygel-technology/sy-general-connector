@@ -5,11 +5,7 @@ from odoo import fields, models
 
 
 class AccountMoveLine(models.Model):
-    _inherit = 'account.move.line'
+    _inherit = "account.move.line"
 
-    ecommerce_id = fields.Integer(
-        string="Ecommerce ID"
-    )
-    ecommerce_shipping_id = fields.Integer(
-        string="Ecommerce Shipping ID"
-    )
+    ecommerce_id = fields.Integer(string="Ecommerce ID")
+    ecommerce_shipping_id = fields.Integer(string="Ecommerce Shipping ID")

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2022 Manuel Regidor <manuel.regidor@sygel.es>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="ecommerce_connection_view_form" model="ir.ui.view">
+        <field name="name">ecommerce.connection.view.form</field>
+        <field name="model">ecommerce.connection</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Ecommerce Connection">
+                <sheet>
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="bg-danger"
+                        attrs="{'invisible': [('active', '=', True)]}"
+                    />
+                    <div class="oe_title">
+                        <label for="name" />
+                        <h1><field name="name" class="oe_inline" /></h1>
+                        <field name="active" invisible="1" />
+                    </div>
+                    <group>
+                            <group>
+                                <field name="ecommerce_id" />
+                            </group>
+                            <group>
+                                <field name="company_id" />
+                                <field name="lang" />
+                                <field name="use_odoo_so_sequence" />
+                                <field name="duplicate_invoice_name" />
+                                <field name="check_customer_vat" />
+                                <field name="create_invoice" />
+                                <field
+                                name="validate_invoice"
+                                attrs="{'invisible': [('create_invoice', '=', False)]}"
+                            />
+                                <field name="invoice_policy" />
+                            </group>
+                    </group>
+                    <group>
+                        <group string="Product Search">
+                            <field name="create_products_single_company" />
+                            <field name="product_search_rule" />
+                        </group>
+                        <group string="Contact Search">
+                            <field name="create_contacts_single_company" />
+                            <field name="contact_search_rule" />
+                            <field name="shipping_address_search_rule" />
+                            <field name="invoice_address_search_rule" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="ecommerce_connection_view_tree" model="ir.ui.view">
+        <field name="name">ecommerce.connection.view.tree</field>
+        <field name="model">ecommerce.connection</field>
+        <field name="type">tree</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="ecommerce_id" />
+            </tree>
+        </field>
+    </record>
+    <record id="ecommerce_connection_action" model="ir.actions.act_window">
+        <field name="name">Ecommerce Connection</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">ecommerce.connection</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="ecommerce_connection_view_tree" />
+    </record>
+</odoo>

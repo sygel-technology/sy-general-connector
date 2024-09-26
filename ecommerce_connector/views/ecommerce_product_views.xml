@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2022 Manuel Regidor <manuel.regidor@sygel.es>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="ecommerce_product_product_tree" model="ir.ui.view">
+        <field name="name">ecommerce.product.product.tree</field>
+        <field name="model">ecommerce.product.product</field>
+        <field name="type">tree</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="ecommerce_connection_id" options="{'no_create': True}" />
+                <field name="product_id" options="{'no_create': True}" />
+                <field name="ecommerce_id" />
+            </tree>
+        </field>
+    </record>
+    <record id="ecommerce_product_template_tree" model="ir.ui.view">
+        <field name="name">ecommerce.product.template.tree</field>
+        <field name="model">ecommerce.product.template</field>
+        <field name="type">tree</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="ecommerce_connection_id" options="{'no_create': True}" />
+                <field name="product_template_id" options="{'no_create': True}" />
+                <field name="ecommerce_id" />
+            </tree>
+        </field>
+    </record>
+    <record id="ecommerce_product_product_action" model="ir.actions.act_window">
+        <field name="name">Ecommerce Product Variant</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">ecommerce.product.product</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="ecommerce_product_product_tree" />
+    </record>
+    <record id="ecommerce_product_template_action" model="ir.actions.act_window">
+        <field name="name">Ecommerce Product Template</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">ecommerce.product.template</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="ecommerce_product_template_tree" />
+    </record>
+</odoo>

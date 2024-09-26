@@ -17,7 +17,12 @@ Odoo generic connector
 
 [//]: # (addons)
 
-This part will be replaced when running the oca-gen-addons-table script from OCA/maintainer-tools.
+Available addons
+----------------
+addon | version | summary
+--- | --- | ---
+[ecommerce_connector](ecommerce_connector/) | 15.0.1.0.0 | Ecommerce connector base
+[ecommerce_connector_sale_order_type](ecommerce_connector_sale_order_type/) | 15.0.1.0.0 | Set a default sale type for ecommerce sale orders
 
 [//]: # (end addons)
 

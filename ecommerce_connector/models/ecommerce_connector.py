@@ -2,10 +2,14 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 import json
+import logging
+
 from base64 import b64encode
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.tools import float_compare
 from datetime import datetime
+
+_logger = logging.getLogger(__name__)
 
 
 class EcommerceConnector(models.Model):
@@ -1398,6 +1402,11 @@ class EcommerceConnector(models.Model):
                 'state': 'error',
                 'error': errors,
             })
+            _logger.error(_(
+                "Ecommerce Connector error: {}.".format(
+                    errors                  
+                ))
+            )
         connector_call.write({
             'message_out': json.dumps(vals, indent=4),
             'ecommerce_connection_id': ecommerce_connection.id if ecommerce_connection else False,
@@ -1406,6 +1415,11 @@ class EcommerceConnector(models.Model):
 
     @api.model
     def external_create_sale(self, values):
+        _logger.info(_(
+            "Ecommerce Connector: Call with values {}".format(
+                values
+            ))
+        )
         connector_call = self._create_connector_call(values, 'invoice')
         errors = ""
         payment_errors = ""
@@ -1512,21 +1526,57 @@ class EcommerceConnector(models.Model):
             ], limit=1)
         new_order['carrier_id'] = delivery_carrier and delivery_carrier.id
         order_id = self.env['sale.order'].with_company(company).create(new_order)
+        _logger.info(_(
+            "Ecommerce Connector: Sale order ({}) created from ecommerce connector {} with origin {}.".format(
+                order_id.name,
+                ecommerce_connection_id.name,
+                order_id.ecommerce_id
+            ))
+        )
         order_id.action_confirm()
+        _logger.info(_(
+            "Ecommerce Connector: Sale order ({}) with origin {} from ecommerce connector {} confirmed.".format(
+                order_id.name,
+                order_id.ecommerce_id,
+                ecommerce_connection_id.name,
+            ))
+        )
         moves = order_id.with_company(company)._create_invoices()
         if moves:
             moves.write({
                 'ecommerce_id': order_id.ecommerce_id
             })
+            _logger.info(_(
+                "Ecommerce Connector: Invoice ({}) with origin {} from ecommerce connector {} created.".format(
+                    moves[0].name,
+                    order_id.ecommerce_id,
+                    ecommerce_connection_id.name,
+                ))
+            )
         errors = self._check_invoice(values, moves[0], errors)
         errors = self._check_invoice_lines(values, moves[0], errors)
         errors = self._check_shipping_lines(values, moves[0], errors)
         if errors:
+            _logger.error(_(
+                "Ecommerce Connector: Error when checking values in invoice created "
+                "from sale order with origin {} from ecommerce connector {}. "
+                "Deleting both the sale order and the invoice.".format(
+                    order_id.ecommerce_id,                    
+                    ecommerce_connection_id.name,
+                ))
+            )
             moves.unlink()
             order_id.action_cancel()
             order_id.unlink()
         else:
             moves.with_company(company).action_post()
+            _logger.info(_(
+                "Ecommerce Connector: Invoice ({}) with origin {} from ecommerce connector {} posted.".format(
+                    moves[0].name,
+                    order_id.ecommerce_id,
+                    ecommerce_connection_id.name,
+                ))
+            )
             move_id = moves[0]
             self._create_payments(moves, values)
             payment_errors = self._check_invoice_payments(values, move_id, payment_errors)

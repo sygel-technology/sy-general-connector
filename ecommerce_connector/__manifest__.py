@@ -4,7 +4,7 @@
 {
     "name": "Ecommerce Connector",
     "summary": "General E-Commerce Integration",
-    "version": "14.0.3.0.0",
+    "version": "14.0.3.0.1",
     "category": "Ecommerce",
     "author": "Sygel",
     "license": "AGPL-3",

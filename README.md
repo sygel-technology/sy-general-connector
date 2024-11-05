@@ -19,10 +19,10 @@ Odoo generic connector
 
 Available addons
 ----------------
-addon | version | summary
---- | --- | ---
-[ecommerce_connector](ecommerce_connector/) | 15.0.1.0.0 | Ecommerce connector base
-[ecommerce_connector_sale_order_type](ecommerce_connector_sale_order_type/) | 15.0.1.0.0 | Set a default sale type for ecommerce sale orders
+addon | version | maintainers | summary
+--- | --- | --- | ---
+[ecommerce_connector](ecommerce_connector/) | 15.0.1.0.0 |  | General E-Commerce Integration
+[ecommerce_connector_sale_order_type](ecommerce_connector_sale_order_type/) | 15.0.1.0.0 |  | Set a default sale type for ecommerce sale orders.
 
 [//]: # (end addons)
 

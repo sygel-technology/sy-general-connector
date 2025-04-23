@@ -50,36 +50,48 @@ class EcommerceConnector(models.Model):
             ], limit=1)
         return province_id
 
-    def _get_contact(self, values, ecommerce_connection):
-        """ Returns a res.partner record with the given values
-
-            :param values: dictionary with the contact data
-            :param ecommerce_connection: ecommerce.connection record
-        """
-        partner_id = False
-        if ecommerce_connection.contact_search_rule == 'ecommerce_id':
-            ecommerce_partner_id = self.env['ecommerce.partner'].search([
-                ('ecommerce_connection_id', '=', ecommerce_connection.id),
-                ('ecommerce_id', '=', int(values.get('customer').get('id')))
-            ], limit=1)
-            if ecommerce_partner_id and ecommerce_partner_id.partner_id.type == 'contact':
-                partner_id = ecommerce_partner_id.partner_id
-        elif ecommerce_connection.contact_search_rule == 'email':
-            partner_id = self.env['res.partner'].search([
-                ('email', '=ilike', values.get('customer').get('email')),
-                ('type', '=', 'contact'),
-                ('parent_id', '=', False),
-                ('company_id', 'in', [False, int(values.get('companyId'))])
-            ], limit=1)
-        elif ecommerce_connection.contact_search_rule == 'vat':
+    def _get_contact_domain(self, values, ecommerce_connection):
+        domain = []
+        is_company = values.get("customer").get("typeClient") == "business"
+        if ecommerce_connection.contact_search_rule == "ecommerce_id":
+            ecommerce_partner_id = self.env["ecommerce.partner"].search(
+                [
+                    ("ecommerce_connection_id", "=", ecommerce_connection.id),
+                    ("ecommerce_id", "=", int(values.get("customer").get("id"))),
+                ],
+                limit=1,
+            )
+            if ecommerce_partner_id:
+                contact_type = (
+                    "person"
+                    if values.get("customer").get("typeClient") == "individual"
+                    else "company"
+                )
+                if (
+                    ecommerce_connection.contact_search_partner_type and 
+                    ecommerce_partner_id.partner_id.company_type == contact_type
+                ) or not ecommerce_connection.contact_search_partner_type:
+                    domain = ["id", "=", ecommerce_partner_id.partner_id.id]
+        elif ecommerce_connection.contact_search_rule == "email":
             domain = [
-                ('type', '=', 'contact'),
+                ('email', '=ilike', values.get('customer').get('email')),
                 ('parent_id', '=', False),
                 ('company_id', 'in', [False, int(values.get('companyId'))])
             ]
-            vat = values.get('customer').get('vat')
-            vat_domain = [('vat', '=ilike', vat)]
-            country_id = self.get_country(values.get('shippingAddress').get('countryCode'))
+            if ecommerce_connection.contact_search_partner_type:
+                domain += [("is_company", "=", is_company)]
+        elif ecommerce_connection.contact_search_rule == "vat":
+            domain = [
+                ("parent_id", "=", False),
+                ("company_id", "in", [False, int(values.get("companyId"))]),
+            ]
+            if ecommerce_connection.contact_search_partner_type:
+                domain += [("is_company", "=", is_company)]
+            vat = values.get("customer").get("vat")
+            vat_domain = [("vat", "=ilike", vat)]
+            country_id = self.get_country(
+                values.get("shippingAddress").get("countryCode")
+            )
             if country_id:
                 if vat.startswith(country_id.code):
                     vat_with_code = vat
@@ -94,26 +106,60 @@ class EcommerceConnector(models.Model):
                     ('vat', '=ilike', vat),
                     ('vat', '=ilike', vat_with_code),
                 ]
-            partner_id = self.env['res.partner'].search(
-                vat_domain + domain,
-                limit=1
+            domain = vat_domain + domain
+        elif ecommerce_connection.contact_search_rule == "contact_info":
+            name = ''
+            if is_company:
+                name = values.get('customer').get('comercialName')
+            else:
+                name = "%s %s" % (
+                    values.get('customer').get('firstname'),
+                    values.get('customer').get('lastname')
+                )
+            domain = [
+                ("parent_id", "=", False),
+                ("name", "=ilike", name),
+                ("email", "=ilike", values.get("customer").get("email")),
+                (
+                    "phone",
+                    "=ilike",
+                    values.get("customer").get("phone")
+                    if values.get("customer").get("phone") is not None
+                    else False,
+                ),
+                (
+                    "mobile",
+                    "=ilike",
+                    values.get("customer").get("mobile")
+                    if values.get("customer").get("mobile") is not None
+                    else False,
+                ),
+                (
+                    "vat",
+                    "=ilike",
+                    values.get("customer").get("vat")
+                    if values.get("customer").get("vat") is not None
+                    else False,
+                ),
+                ("company_id", "in", [False, int(values.get("companyId"))]),
+            ]
+            if ecommerce_connection.contact_search_partner_type:
+                domain += [("is_company", "=", is_company)]
+        return domain
+
+    def _get_contact(self, values, ecommerce_connection):
+        """ Returns a res.partner record with the given values
+
+            :param values: dictionary with the contact data
+            :param ecommerce_connection: ecommerce.connection record
+        """
+        partner_id = False
+        domain = self._get_contact_domain(values, ecommerce_connection)
+        if domain:
+            partner_id = self.env["res.partner"].search(
+                domain,
+                limit=1,
             )
-        elif ecommerce_connection.contact_search_rule == 'contact_info':
-            name = values.get('customer').get('firstname')
-            if values.get('customer').get('lastname'):
-                name = "%s %s" % (name, values.get('customer').get('lastname'))
-            contact_type = 'person' if values.get('customer').get('typeClient') == 'individual' else 'business'
-            partner_id = self.env['res.partner'].search([
-                ('type', '=', 'contact'),
-                ('parent_id', '=', False),
-                ('name', '=ilike', name),
-                ('email', '=ilike', values.get('customer').get('email')),
-                ('phone', '=ilike', values.get('customer').get('phone') if values.get('customer').get('phone') is not None else False),
-                ('mobile', '=ilike', values.get('customer').get('mobile') if values.get('customer').get('mobile') is not None else False),
-                ('vat', '=ilike', values.get('customer').get('vat') if values.get('customer').get('vat') is not None else False),
-                ('company_type', '=', contact_type),
-                ('company_id', 'in', [False, int(values.get('companyId'))])
-            ], limit=1)
         if not partner_id:
             partner_id = self._create_new_partner(values, ecommerce_connection)
         return partner_id
@@ -1005,10 +1051,14 @@ class EcommerceConnector(models.Model):
         """
         fiscal_position_type = 'b2c' if values.get('customer').get('typeClient') == 'individual' else 'b2b'
         company_type = 'company' if values.get('customer').get('typeClient') == 'business' else 'person'
-        name = "%s %s" % (
-            values.get('customer').get('firstname'),
-            values.get('customer').get('lastname')
-        )
+        name = ''
+        if company_type == 'company':
+            name = values.get('customer').get('comercialName')
+        else:
+            name = "%s %s" % (
+                values.get('customer').get('firstname'),
+                values.get('customer').get('lastname')
+            )
         commercial_company_name = values.get('customer').get('comercial_name') if values.get('customer').get('typeClient') == 'business' else False
         country_id = self.get_country(values.get('customer').get('countryCode'))
         province_id = self.get_province(country_id, values.get('customer').get('provinceCode'))

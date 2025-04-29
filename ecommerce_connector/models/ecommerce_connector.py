@@ -1625,6 +1625,10 @@ class EcommerceConnector(models.Model):
             "fiscal_position_type": fiscal_position_type,
             "phone": values.get("customer").get("phone"),
             "mobile": values.get("customer").get("mobile"),
+            "medium_id": self._get_medium_from_values(values),
+            "campaign_id": self._get_campaign_from_values(values),
+            "source_id": self._get_source_from_values(values),
+            "content_id": self._get_content_from_values(values),
             "ecommerce_partner_ids": [
                 (
                     0,
@@ -1809,6 +1813,54 @@ class EcommerceConnector(models.Model):
             elif rate == 2.10:
                 tax_id = self.env.ref("l10n_fr.%s_tva_super_reduite" % company.id)
         return tax_id
+
+    def _get_campaign_from_values(self, values):
+        campaign_id = False
+        if values.get("campaign"):
+            campaign_id = self.env["utm.campaign"].search(
+                [("name", "=", values.get("campaign"))], limit=1
+            )
+            if not campaign_id:
+                campaign_id = self.env["utm.campaign"].create(
+                    {"name": values.get("campaign")}
+                )
+        return campaign_id
+
+    def _get_medium_from_values(self, values):
+        medium_id = False
+        if values.get("medium"):
+            medium_id = self.env["utm.medium"].search(
+                [("name", "=", values.get("medium"))], limit=1
+            )
+            if not medium_id:
+                medium_id = self.env["utm.medium"].create(
+                    {"name": values.get("medium")}
+                )
+        return medium_id
+
+    def _get_source_from_values(self, values):
+        source_id = False
+        if values.get("source"):
+            source_id = self.env["utm.source"].search(
+                [("name", "=", values.get("source"))], limit=1
+            )
+            if not source_id:
+                source_id = self.env["utm.source"].create(
+                    {"name": values.get("source")}
+                )
+        return source_id
+
+    def _get_content_from_values(self, values):
+        content_id = False
+        if values.get("content"):
+            content_id = self.env["utm.content"].search(
+                [("name", "=", values.get("content"))], limit=1
+            )
+            if not content_id:
+                content_id = self.env["utm.content"].create(
+                    {"name": values.get("content")}
+                )
+        return content_id
 
     def _find_product(self, line, ecommerce_connection):
         """Returns a product.product record if found

@@ -42,13 +42,13 @@ class EcommerceConnection(models.Model):
         help="If checked, the partner type (person or company) will be "
         "used in the customer's search domain."
     )
-    contact_search_rule = fields.Selection([
-        ("ecommerce_id", "Ecommerce ID"),
-        ("email", "Email"),
-        ("vat", "VAT"),
-        ("contact_info", "Contact Info")
-    ],
-        string="Contact Search Rule",
+    contact_search_rule = fields.Selection(
+        [
+            ("ecommerce_id", "Ecommerce ID"),
+            ("email", "Email"),
+            ("vat", "VAT"),
+            ("contact_info", "Contact Info"),
+        ],
         default="ecommerce_id",
         required=True,
     )

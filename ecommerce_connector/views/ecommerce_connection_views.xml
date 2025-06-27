@@ -44,12 +44,8 @@
                             <field name="product_search_rule" />
                         </group>
                         <group string="Contact Search">
-<<<<<<< HEAD
                             <field name="create_contacts_single_company" />
-=======
-                            <field name="create_contacts_single_company"/>
                             <field name="contact_search_partner_type" />
->>>>>>> e0140e6 ([I-7633][IMP] ecommerce_connector: search by contact type and search contact domain method)
                             <field name="contact_search_rule" />
                             <field name="shipping_address_search_rule" />
                             <field name="invoice_address_search_rule" />

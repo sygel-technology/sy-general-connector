@@ -62,15 +62,15 @@ class EcommerceConnector(models.Model):
                     else "company"
                 )
                 if (
-                    ecommerce_connection.contact_search_partner_type and 
-                    ecommerce_partner_id.partner_id.company_type == contact_type
+                    ecommerce_connection.contact_search_partner_type
+                    and ecommerce_partner_id.partner_id.company_type == contact_type
                 ) or not ecommerce_connection.contact_search_partner_type:
                     domain = ["id", "=", ecommerce_partner_id.partner_id.id]
         elif ecommerce_connection.contact_search_rule == "email":
             domain = [
-                ('email', '=ilike', values.get('customer').get('email')),
-                ('parent_id', '=', False),
-                ('company_id', 'in', [False, int(values.get('companyId'))])
+                ("email", "=ilike", values.get("customer").get("email")),
+                ("parent_id", "=", False),
+                ("company_id", "in", [False, int(values.get("companyId"))]),
             ]
             if ecommerce_connection.contact_search_partner_type:
                 domain += [("is_company", "=", is_company)]
@@ -89,29 +89,23 @@ class EcommerceConnector(models.Model):
             if country_id:
                 if vat.startswith(country_id.code):
                     vat_with_code = vat
-                    vat = vat[len(country_id.code):]
+                    vat = vat[len(country_id.code) :]
                 else:
-                    vat_with_code = "{}{}".format(
-                        country_id.code,
-                        vat
-                    )
+                    vat_with_code = "{}{}".format(country_id.code, vat)
                 vat_domain = [
-                    '|',
-                    ('vat', '=ilike', vat),
-                    ('vat', '=ilike', vat_with_code),
+                    "|",
+                    ("vat", "=ilike", vat),
+                    ("vat", "=ilike", vat_with_code),
                 ]
             domain = vat_domain + domain
         elif ecommerce_connection.contact_search_rule == "contact_info":
-            name = ''
+            name = ""
             if is_company:
-                name = values.get('customer').get('comercialName')
+                name = values.get("customer").get("comercialName")
             else:
-                name = values.get('customer').get('firstname')
-                if values.get('customer').get('lastname'):
-                    name = "%s %s" % (
-                        name,
-                        values.get('customer').get('lastname')
-                    )
+                name = values.get("customer").get("firstname")
+                if values.get("customer").get("lastname"):
+                    name = "%s %s" % (name, values.get("customer").get("lastname"))
             domain = [
                 ("parent_id", "=", False),
                 ("name", "=ilike", name),
@@ -144,10 +138,10 @@ class EcommerceConnector(models.Model):
         return domain
 
     def _get_contact(self, values, ecommerce_connection):
-        """ Returns a res.partner record with the given values
+        """Returns a res.partner record with the given values
 
-            :param values: dictionary with the contact data
-            :param ecommerce_connection: ecommerce.connection record
+        :param values: dictionary with the contact data
+        :param ecommerce_connection: ecommerce.connection record
         """
         partner_id = False
         domain = self._get_contact_domain(values, ecommerce_connection)
@@ -1536,14 +1530,13 @@ class EcommerceConnector(models.Model):
 
         :param values: dictionary with the values of the new invoice address
         """
-        name = values.get('billingAddress').get('firstname')
-        if values.get('billingAddress').get('lastname'):
-            name = "%s %s" % (
-                name,
-                values.get('billingAddress').get('lastname')
-            )
-        country_id = self.get_country(values.get('billingAddress').get('countryCode'))
-        province_id = self.get_province(country_id, values.get('billingAddress').get('provinceCode'))
+        name = values.get("billingAddress").get("firstname")
+        if values.get("billingAddress").get("lastname"):
+            name = "%s %s" % (name, values.get("billingAddress").get("lastname"))
+        country_id = self.get_country(values.get("billingAddress").get("countryCode"))
+        province_id = self.get_province(
+            country_id, values.get("billingAddress").get("provinceCode")
+        )
         return {
             "type": "invoice",
             "name": name,
@@ -1563,14 +1556,13 @@ class EcommerceConnector(models.Model):
 
         :param values: dictionary with the values of the new shipping address
         """
-        name = values.get('shippingAddress').get('firstname')
-        if values.get('shippingAddress').get('lastname'):
-            name = "%s %s" % (
-                name,
-                values.get('shippingAddress').get('lastname')
-            )
-        country_id = self.get_country(values.get('shippingAddress').get('countryCode'))
-        province_id = self.get_province(country_id, values.get('shippingAddress').get('provinceCode'))
+        name = values.get("shippingAddress").get("firstname")
+        if values.get("shippingAddress").get("lastname"):
+            name = "%s %s" % (name, values.get("shippingAddress").get("lastname"))
+        country_id = self.get_country(values.get("shippingAddress").get("countryCode"))
+        province_id = self.get_province(
+            country_id, values.get("shippingAddress").get("provinceCode")
+        )
         return {
             "type": "delivery",
             "name": name,
@@ -1606,21 +1598,30 @@ class EcommerceConnector(models.Model):
         :param values: dictionary with the values for the new partner
         :param ecommerce_connection: ecommerce.connection record
         """
-        fiscal_position_type = 'b2c' if values.get('customer').get('typeClient') == 'individual' else 'b2b'
-        company_type = 'company' if values.get('customer').get('typeClient') == 'business' else 'person'
-        name = ''
-        if company_type == 'company':
-            name = values.get('customer').get('comercialName')
+        fiscal_position_type = (
+            "b2c" if values.get("customer").get("typeClient") == "individual" else "b2b"
+        )
+        company_type = (
+            "company"
+            if values.get("customer").get("typeClient") == "business"
+            else "person"
+        )
+        name = ""
+        if company_type == "company":
+            name = values.get("customer").get("comercialName")
         else:
-            name = values.get('customer').get('firstname')
-            if values.get('customer').get('lastname'):
-                name = "%s %s" % (
-                    name,
-                    values.get('customer').get('lastname')
-                )
-        commercial_company_name = values.get('customer').get('comercial_name') if values.get('customer').get('typeClient') == 'business' else False
-        country_id = self.get_country(values.get('customer').get('countryCode'))
-        province_id = self.get_province(country_id, values.get('customer').get('provinceCode'))
+            name = values.get("customer").get("firstname")
+            if values.get("customer").get("lastname"):
+                name = "%s %s" % (name, values.get("customer").get("lastname"))
+        commercial_company_name = (
+            values.get("customer").get("comercial_name")
+            if values.get("customer").get("typeClient") == "business"
+            else False
+        )
+        country_id = self.get_country(values.get("customer").get("countryCode"))
+        province_id = self.get_province(
+            country_id, values.get("customer").get("provinceCode")
+        )
         vals = {
             "name": name,
             "commercial_company_name": commercial_company_name,

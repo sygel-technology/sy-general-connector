@@ -45,6 +45,7 @@
                         </group>
                         <group string="Contact Search">
                             <field name="create_contacts_single_company" />
+                            <field name="contact_search_partner_type" />
                             <field name="contact_search_rule" />
                             <field name="shipping_address_search_rule" />
                             <field name="invoice_address_search_rule" />

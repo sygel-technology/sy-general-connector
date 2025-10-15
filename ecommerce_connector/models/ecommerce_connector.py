@@ -587,6 +587,8 @@ class EcommerceConnector(models.Model):
     def _check_general_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("id"):
             errors = self._write_errors(errors, "Ecommerce ID is missing.")
         if "number" not in excluded_fields and not values.get("number"):
@@ -618,6 +620,8 @@ class EcommerceConnector(models.Model):
     def _check_customer_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("customer"):
             errors = self._write_errors(errors, "Customer is missing.")
         if "customer.id" not in excluded_fields and not values.get("customer").get(
@@ -643,6 +647,8 @@ class EcommerceConnector(models.Model):
     def _check_shipping_address_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("shippingAddress"):
             errors = self._write_errors(errors, "Shipping address is missing.")
         if "shippingAddress.id" not in excluded_fields and not values.get(
@@ -676,6 +682,8 @@ class EcommerceConnector(models.Model):
     def _check_billing_address_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("billingAddress"):
             errors = self._write_errors(errors, "Billing address is missing.")
         if "billingAddress.id" not in excluded_fields and not values.get(
@@ -707,6 +715,8 @@ class EcommerceConnector(models.Model):
     def _check_payment_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if values.get("payments"):
             if any(
                 not payment.get("id")
@@ -725,6 +735,8 @@ class EcommerceConnector(models.Model):
     def _check_shipment_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if values.get("shipments"):
             if any(
                 not shipment.get("id")
@@ -743,6 +755,8 @@ class EcommerceConnector(models.Model):
     def _check_lines_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("lines"):
             errors = self._write_errors(errors, "Lines are missing.")
         if any(
@@ -788,6 +802,8 @@ class EcommerceConnector(models.Model):
     def _check_product_search_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if ecommerce_connection.product_search_rule == "barcode" and any(
             not line.get("productBarcode") for line in values.get("lines")
         ):
@@ -801,6 +817,8 @@ class EcommerceConnector(models.Model):
     def _check_customer_search_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if ecommerce_connection.contact_search_rule == "vat" and not values.get(
             "customer"
         ).get("vat"):
@@ -812,6 +830,8 @@ class EcommerceConnector(models.Model):
     def _check_billing_address_search_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if (
             ecommerce_connection.invoice_address_search_rule == "ecommerce_id"
             and not values.get("billingAddress").get("id")
@@ -831,6 +851,8 @@ class EcommerceConnector(models.Model):
     def _check_shipping_address_search_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if (
             ecommerce_connection.shipping_address_search_rule == "ecommerce_id"
             and not values.get("shippingAddress").get("id")
@@ -858,6 +880,8 @@ class EcommerceConnector(models.Model):
         :param ecommerce_connection: ecommerce.connection record
         :param excluded_fields: list of mandatory fields to be excluded
         """
+        if not excluded_fields:
+            excluded_fields = []
         # General mandatory fields
         errors = self._check_general_mandatory_fields(
             errors, values, company_id, ecommerce_connection, excluded_fields

@@ -9,9 +9,11 @@
         <field name="model">product.pricelist</field>
         <field name="inherit_id" ref="product.product_pricelist_view" />
         <field name="arch" type="xml">
-            <field name="discount_policy" position="after">
-                <field name="ecommerce_connector_default_currency" />
-            </field>
+            <group name="pricelist_discounts" position="after">
+                <group name="ecommerce_connector" string="Eccomerce Connector">
+                    <field name="ecommerce_connector_default_currency" />
+                </group>
+            </group>
         </field>
     </record>
 </odoo>

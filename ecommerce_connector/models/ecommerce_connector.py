@@ -150,6 +150,8 @@ class EcommerceConnector(models.Model):
                 domain,
                 limit=1,
             )
+        if ecommerce_connection.update_contacts and partner_id:
+            self._update_partner(partner_id, values, ecommerce_connection)
         if not partner_id:
             partner_id = self._create_new_partner(values, ecommerce_connection)
         return partner_id
@@ -1662,6 +1664,23 @@ class EcommerceConnector(models.Model):
         vals = self._get_new_partner_vals(values, ecommerce_connection)
         partner = self.env["res.partner"].create(vals)
         return partner
+
+    def _update_partner(
+        self, partner, values, ecommerce_connection, precalculated_values=None
+    ):
+        """Sets in a res.partner record the new values sent from the ecommerce
+
+        :param partner: single partner to update
+        :param values: dictionary with the values for the new partner
+        :param ecommerce_connection: ecommerce.connection record
+        """
+        partner.ensure_one()
+        if precalculated_values is None:
+            vals = self._get_new_partner_vals(values, ecommerce_connection)
+        else:
+            vals = precalculated_values
+        vals.pop("ecommerce_partner_ids", False)
+        return partner.write(vals)
 
     def _create_new_shipping_partner(self, values, partner, ecommerce_connection):
         """Returns a res.partner record with a newly created shipping contact

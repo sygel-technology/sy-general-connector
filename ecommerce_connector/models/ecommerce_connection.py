@@ -82,6 +82,10 @@ class EcommerceConnection(models.Model):
         [("order", "Ordered quantities"), ("delivery", "Delivered quantities")],
     )
     validate_invoice = fields.Boolean()
+    update_contacts = fields.Boolean(
+        help="If checked, the searched contacts will be updated "
+        "with the remaining partner data of the request"
+    )
 
     _sql_constraints = [
         (

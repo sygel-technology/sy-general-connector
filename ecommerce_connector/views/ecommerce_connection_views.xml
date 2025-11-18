@@ -49,6 +49,7 @@
                             <field name="contact_search_rule" />
                             <field name="shipping_address_search_rule" />
                             <field name="invoice_address_search_rule" />
+                            <field name="update_contacts" />
                         </group>
                     </group>
                 </sheet>

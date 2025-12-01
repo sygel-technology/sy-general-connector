@@ -21,6 +21,31 @@ class EcommerceConnector(models.Model):
         """
         return f"{errors}{new_error}\n"
 
+    @api.model
+    def _get_company(self, values):
+        company = int(values.get("companyId"))
+        company_id = self.env["res.company"].search([("id", "=", company)])
+        error = False
+        if not company_id:
+            error = "Company not found."
+        elif not company_id.accept_ecommerce_connector:
+            error = "The company does not accept the external call."
+        return company_id, error
+
+    @api.model
+    def _get_ecommerce_connection(self, values, company_id):
+        ecommerce_connection = self.env["ecommerce.connection"].search(
+            [
+                ("ecommerce_id", "=", int(values.get("ecommerceId"))),
+                ("company_id", "=", company_id.id),
+            ],
+            limit=1,
+        )
+        error = False
+        if not ecommerce_connection:
+            error = "Ecommerce Connection not found."
+        return ecommerce_connection, error
+
     def get_country(self, code):
         """Returns country record identified by the code
 
@@ -1682,6 +1707,45 @@ class EcommerceConnector(models.Model):
         vals.pop("ecommerce_partner_ids", False)
         return partner.write(vals)
 
+    @api.model
+    def external_update_customer(self, values):
+        connector_call = self._create_connector_call(values, "update_contact")
+        company, error = self._get_company(values)
+        if error:
+            return self._create_sale(connector_call, values, error)
+        ecommerce_connection, error = self._get_ecommerce_connection(values, company)
+        if error:
+            return self._create_sale(
+                connector_call, values, error, ecommerce_connection
+            )
+        domain = self._get_contact_domain(values, ecommerce_connection)
+        if not domain:
+            return self._create_sale(
+                connector_call,
+                values,
+                "The partner was not found",
+                ecommerce_connection,
+            )
+        partner_id = self.env["res.partner"].search(
+            domain,
+            limit=1,
+        )
+        if not partner_id:
+            error = "The partner was not found"
+        elif partner_id.filtered(lambda p: p.type in ["invoice", "delivery"]):
+            error = "The partner cannot be a invoice or delivery address"
+        if error:
+            return self._create_sale(
+                connector_call, values, error, ecommerce_connection
+            )
+        self._update_partner(partner_id, values, ecommerce_connection)
+        connector_call.write(
+            {
+                "state": "done",
+            }
+        )
+        return {"status": "OK"}
+
     def _create_new_shipping_partner(self, values, partner, ecommerce_connection):
         """Returns a res.partner record with a newly created shipping contact
 
@@ -2234,29 +2298,15 @@ class EcommerceConnector(models.Model):
         errors = ""
         payment_errors = ""
         company = int(values.get("companyId"))
-        company_id = self.env["res.company"].search([("id", "=", company)])
-        if not company_id:
-            errors = self._write_errors(errors, "Company not found.")
-            return self._create_sale(connector_call, values, errors)
-        if not company_id.accept_ecommerce_connector:
-            errors = self._write_errors(
-                errors, "The company does not accept the external call."
-            )
-            return self._create_sale(connector_call, values, errors)
-        if errors:
-            return self._create_sale(connector_call, values, errors)
-
-        ecommerce_connection_id = self.env["ecommerce.connection"].search(
-            [
-                ("ecommerce_id", "=", int(values.get("ecommerceId"))),
-                ("company_id", "=", company_id.id),
-            ],
-            limit=1,
+        company_id, error = self._get_company(values)
+        if error:
+            return self._create_sale(connector_call, values, error)
+        ecommerce_connection_id, error = self._get_ecommerce_connection(
+            values, company_id
         )
-        if not ecommerce_connection_id:
-            errors = self._write_errors(errors, "Ecommerce Connection not found.")
+        if error:
             return self._create_sale(
-                connector_call, values, errors, ecommerce_connection_id
+                connector_call, values, error, ecommerce_connection_id
             )
 
         # Put lang in context

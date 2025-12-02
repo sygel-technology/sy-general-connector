@@ -2361,7 +2361,8 @@ class EcommerceConnector(models.Model):
         order_vals = self._get_order_vals(
             values, ecommerce_connection_id, company_id, connector_call, number, errors
         )
-
+        if order_vals.get("status") == "error":
+            return order_vals
         order_id = self.env["sale.order"].with_company(company).create(order_vals)
         order_id.flush()
         order_id.action_confirm()

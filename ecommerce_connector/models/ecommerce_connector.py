@@ -2138,7 +2138,7 @@ class EcommerceConnector(models.Model):
                     }
                 )
 
-    def _create_sale(
+    def _create_response(
         self,
         connector_call,
         values,
@@ -2256,7 +2256,7 @@ class EcommerceConnector(models.Model):
             errors, values.get("lines"), ecommerce_connection
         )
         if errors:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, errors, ecommerce_connection
             )
         fiscal_position_id = self._get_fiscal_position(
@@ -2312,12 +2312,12 @@ class EcommerceConnector(models.Model):
         company = int(values.get("companyId"))
         company_id, error = self._get_company(values)
         if error:
-            return self._create_sale(connector_call, values, error)
+            return self._create_response(connector_call, values, error)
         ecommerce_connection_id, error = self._get_ecommerce_connection(
             values, company_id
         )
         if error:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, error, ecommerce_connection_id
             )
 
@@ -2340,7 +2340,7 @@ class EcommerceConnector(models.Model):
                 errors,
                 "Sale {} (id {}) is already imported.".format(number, values.get("id")),
             )
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, errors, ecommerce_connection_id
             )
 
@@ -2348,13 +2348,13 @@ class EcommerceConnector(models.Model):
         move_id = False
         errors = self._check_has_country(errors, company_id)
         if errors:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, errors, ecommerce_connection_id
             )
 
         errors = self._check_values(errors, values, company_id, ecommerce_connection_id)
         if errors:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, errors, ecommerce_connection_id
             )
 
@@ -2392,7 +2392,7 @@ class EcommerceConnector(models.Model):
                 order_id.action_cancel()
                 order_id.unlink()
 
-        return self._create_sale(
+        return self._create_response(
             connector_call,
             values,
             errors,

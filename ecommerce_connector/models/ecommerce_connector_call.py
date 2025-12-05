@@ -32,7 +32,11 @@ class EcommerConnectorCall(models.Model):
     message_out = fields.Text(readonly=True)
     error = fields.Text(readonly=True)
     operation = fields.Selection(
-        [("invoice", "Invoice"), ("credit", "Credit Note")],
+        [
+            ("invoice", "Invoice"),
+            ("credit", "Credit Note"),
+            ("update_contact", "Update Contact"),
+        ],
         readonly=True,
     )
 

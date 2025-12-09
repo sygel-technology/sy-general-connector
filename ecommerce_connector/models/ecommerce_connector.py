@@ -963,7 +963,10 @@ class EcommerceConnector(models.Model):
             )
             if amount_paid > float(values.get("total")):
                 errors = self._write_errors(
-                    errors, "Paid amount cannot be higher than total amount."
+                    errors,
+                    "Paid amount ({}) cannot be higher than total amount ({}).".format(
+                        amount_paid, values.get("total")
+                    ),
                 )
             for payment in values.get("payments"):
                 payment_mode_id = self.env["account.payment.mode"].search(
@@ -1198,7 +1201,10 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Total in sales currency does not match the value sent with the call.",
+                "Total in sales currency ({}) does not match "
+                "the value sent with the call ({}).".format(
+                    move.amount_total, values.get("total")
+                ),
             )
         if (
             float_compare(
@@ -1210,8 +1216,10 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Total in company currency does not match the value sent with "
-                "the call.",
+                "Total in company currency ({}) does not match the value sent with "
+                "the call ({}).".format(
+                    move.amount_total_signed, values.get("totalCompany")
+                ),
             )
         if (
             float_compare(
@@ -1221,8 +1229,8 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Tax amount in sales currency does not match the value sent "
-                "with the call.",
+                "Tax amount in sales currency ({}) does not match the value sent "
+                "with the call ({}).".format(move.amount_tax, values.get("taxTotal")),
             )
         if (
             float_compare(
@@ -1234,8 +1242,10 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Tax amount in company currency does not match the value sent "
-                "with the call.",
+                "Tax amount in company currency ({}) does not match the value sent "
+                "with the call ({}).".format(
+                    move.amount_tax_signed, values.get("taxTotalCompany")
+                ),
             )
         return errors
 
@@ -1261,8 +1271,10 @@ class EcommerceConnector(models.Model):
             ):
                 errors = self._write_errors(
                     errors,
-                    "Total in sales currency in line with ID %s does not match "
-                    "the value sent with the call." % line.get("id"),
+                    "Total in sales currency ({}) in line with ID {} does not match "
+                    "the value sent with the call ({}).".format(
+                        invoice_line.price_total, line.get("id"), line.get("total")
+                    ),
                 )
             if (
                 float_compare(
@@ -1274,8 +1286,12 @@ class EcommerceConnector(models.Model):
             ):
                 errors = self._write_errors(
                     errors,
-                    "Subtotal in sales currency in line with ID %s does not "
-                    "match the value sent with the call." % line.get("id"),
+                    "Subtotal in sales currency ({}) in line with ID {} does not "
+                    "match the value sent with the call ({}).".format(
+                        invoice_line.price_subtotal,
+                        line.get("id"),
+                        line.get("subtotal"),
+                    ),
                 )
         return errors
 
@@ -1309,9 +1325,12 @@ class EcommerceConnector(models.Model):
                 ):
                     errors = self._write_errors(
                         errors,
-                        "{} in sales currency in shipping line with ID {} does "
-                        "not match the value sent with the call.".format(
-                            compare_field, line.get("id")
+                        "{} in sales currency ({}) in shipping line with ID {} does "
+                        "not match the value sent with the call ({}).".format(
+                            compare_val,
+                            compare_field,
+                            line.get("id"),
+                            line.get("unitPrice"),
                         ),
                     )
         return errors
@@ -1352,8 +1371,12 @@ class EcommerceConnector(models.Model):
                 ):
                     errors = self._write_errors(
                         errors,
-                        "Amount in invoice currency for payment with ID {} does"
-                        " not match.".format(payment.get("id")),
+                        "Amount in invoice currency ({}) for payment with ID {} does"
+                        " not match the value sent with the call ({}).".format(
+                            payment_id.amount_signed,
+                            payment.get("id"),
+                            payment.get("unitPrice"),
+                        ),
                     )
         if errors:
             errors = self._write_errors(
@@ -1456,9 +1479,11 @@ class EcommerceConnector(models.Model):
                 ):
                     errors = self._write_errors(
                         errors,
-                        "Subtotal in sales currency in shipping line with ID "
-                        "{} does not match the value sent with the call.".format(
-                            line.get("id")
+                        "Subtotal in sales currency ({}) in shipping line with ID "
+                        "{} does not match the value sent with the call ({}).".format(
+                            shipping_line.price_subtotal,
+                            line.get("id"),
+                            line.get("unitPrice"),
                         ),
                     )
         return errors
@@ -1479,7 +1504,11 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Total in sales currency does not match the value sent with the call.",
+                "Total in sales currency ({}) does not match "
+                "the value sent with the call ({}).".format(
+                    order.amount_total,
+                    values.get("total"),
+                ),
             )
         if (
             float_compare(
@@ -1489,8 +1518,11 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Tax amount in sales currency does not match the value sent "
-                "with the call.",
+                "Tax amount in sales currency ({}) does not match the value sent "
+                "with the call ({}).".format(
+                    order.amount_tax,
+                    values.get("taxTotal"),
+                ),
             )
         return errors
 
@@ -1516,8 +1548,10 @@ class EcommerceConnector(models.Model):
             ):
                 errors = self._write_errors(
                     errors,
-                    "Total in sales currency in line with ID {} does not match"
-                    " the value sent with the call.".format(line.get("id")),
+                    "Total in sales currency ({}) in line with ID {} does not match"
+                    " the value sent with the call ({}).".format(
+                        sale_order_line.price_total, line.get("id"), line.get("total")
+                    ),
                 )
             if (
                 float_compare(
@@ -1529,8 +1563,12 @@ class EcommerceConnector(models.Model):
             ):
                 errors = self._write_errors(
                     errors,
-                    "Subtotal in sales currency in line with ID {} does not "
-                    "match the value sent with the call.".format(line.get("id")),
+                    "Subtotal in sales currency ({}) in line with ID {} does not "
+                    "match the value sent with the call ({}).".format(
+                        sale_order_line.price_subtotal,
+                        line.get("id"),
+                        line.get("subtotal"),
+                    ),
                 )
         return errors
 
@@ -1557,9 +1595,11 @@ class EcommerceConnector(models.Model):
                 ):
                     errors = self._write_errors(
                         errors,
-                        "Subtotal in sales currency in shipping line with ID "
-                        "{} does not match the value sent with the call.".format(
-                            line.get("id")
+                        "Subtotal in sales currency ({}) in shipping line with ID "
+                        "{} does not match the value sent with the call ({}).".format(
+                            shipping_line.price_subtotal,
+                            line.get("id"),
+                            line.get("unitPrice"),
                         ),
                     )
         return errors

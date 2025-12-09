@@ -90,7 +90,7 @@ class EcommerceConnector(models.Model):
                     ecommerce_connection.contact_search_partner_type
                     and ecommerce_partner_id.partner_id.company_type == contact_type
                 ) or not ecommerce_connection.contact_search_partner_type:
-                    domain = ["id", "=", ecommerce_partner_id.partner_id.id]
+                    domain = [("id", "=", ecommerce_partner_id.partner_id.id)]
         elif ecommerce_connection.contact_search_rule == "email":
             domain = [
                 ("email", "=ilike", values.get("customer").get("email")),
@@ -587,6 +587,8 @@ class EcommerceConnector(models.Model):
     def _check_general_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("id"):
             errors = self._write_errors(errors, "Ecommerce ID is missing.")
         if "number" not in excluded_fields and not values.get("number"):
@@ -618,6 +620,8 @@ class EcommerceConnector(models.Model):
     def _check_customer_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("customer"):
             errors = self._write_errors(errors, "Customer is missing.")
         if "customer.id" not in excluded_fields and not values.get("customer").get(
@@ -643,6 +647,8 @@ class EcommerceConnector(models.Model):
     def _check_shipping_address_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("shippingAddress"):
             errors = self._write_errors(errors, "Shipping address is missing.")
         if "shippingAddress.id" not in excluded_fields and not values.get(
@@ -676,6 +682,8 @@ class EcommerceConnector(models.Model):
     def _check_billing_address_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("billingAddress"):
             errors = self._write_errors(errors, "Billing address is missing.")
         if "billingAddress.id" not in excluded_fields and not values.get(
@@ -705,7 +713,7 @@ class EcommerceConnector(models.Model):
         return errors
 
     def _check_payment_mandatory_fields(
-        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+        self, errors, values, company_id, ecommerce_connection
     ):
         if values.get("payments"):
             if any(
@@ -723,7 +731,7 @@ class EcommerceConnector(models.Model):
         return errors
 
     def _check_shipment_mandatory_fields(
-        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+        self, errors, values, company_id, ecommerce_connection
     ):
         if values.get("shipments"):
             if any(
@@ -743,6 +751,8 @@ class EcommerceConnector(models.Model):
     def _check_lines_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection, excluded_fields=False
     ):
+        if not excluded_fields:
+            excluded_fields = []
         if not values.get("lines"):
             errors = self._write_errors(errors, "Lines are missing.")
         if any(
@@ -786,7 +796,7 @@ class EcommerceConnector(models.Model):
         return errors
 
     def _check_product_search_mandatory_fields(
-        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+        self, errors, values, company_id, ecommerce_connection
     ):
         if ecommerce_connection.product_search_rule == "barcode" and any(
             not line.get("productBarcode") for line in values.get("lines")
@@ -799,7 +809,7 @@ class EcommerceConnector(models.Model):
         return errors
 
     def _check_customer_search_mandatory_fields(
-        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+        self, errors, values, company_id, ecommerce_connection
     ):
         if ecommerce_connection.contact_search_rule == "vat" and not values.get(
             "customer"
@@ -810,7 +820,7 @@ class EcommerceConnector(models.Model):
         return errors
 
     def _check_billing_address_search_mandatory_fields(
-        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+        self, errors, values, company_id, ecommerce_connection
     ):
         if (
             ecommerce_connection.invoice_address_search_rule == "ecommerce_id"
@@ -829,7 +839,7 @@ class EcommerceConnector(models.Model):
         return errors
 
     def _check_shipping_address_search_mandatory_fields(
-        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+        self, errors, values, company_id, ecommerce_connection
     ):
         if (
             ecommerce_connection.shipping_address_search_rule == "ecommerce_id"
@@ -858,6 +868,8 @@ class EcommerceConnector(models.Model):
         :param ecommerce_connection: ecommerce.connection record
         :param excluded_fields: list of mandatory fields to be excluded
         """
+        if not excluded_fields:
+            excluded_fields = []
         # General mandatory fields
         errors = self._check_general_mandatory_fields(
             errors, values, company_id, ecommerce_connection, excluded_fields
@@ -880,12 +892,12 @@ class EcommerceConnector(models.Model):
 
         # Mandatory fields payment
         errors = self._check_payment_mandatory_fields(
-            errors, values, company_id, ecommerce_connection, excluded_fields
+            errors, values, company_id, ecommerce_connection
         )
 
         # Mandatory fields shipments
         errors = self._check_shipment_mandatory_fields(
-            errors, values, company_id, ecommerce_connection, excluded_fields
+            errors, values, company_id, ecommerce_connection
         )
 
         # Mandatory fields lines
@@ -895,22 +907,22 @@ class EcommerceConnector(models.Model):
 
         # Missing search fields for products
         errors = self._check_product_search_mandatory_fields(
-            errors, values, company_id, ecommerce_connection, excluded_fields
+            errors, values, company_id, ecommerce_connection
         )
 
         # Missing search fields for customer
         errors = self._check_customer_search_mandatory_fields(
-            errors, values, company_id, ecommerce_connection, excluded_fields
+            errors, values, company_id, ecommerce_connection
         )
 
         # Missing search fields for billing address
         errors = self._check_billing_address_search_mandatory_fields(
-            errors, values, company_id, ecommerce_connection, excluded_fields
+            errors, values, company_id, ecommerce_connection
         )
 
         # Missing search fields for shiping address
         errors = self._check_shipping_address_search_mandatory_fields(
-            errors, values, company_id, ecommerce_connection, excluded_fields
+            errors, values, company_id, ecommerce_connection
         )
 
         return errors
@@ -2126,7 +2138,7 @@ class EcommerceConnector(models.Model):
                     }
                 )
 
-    def _create_sale(
+    def _create_response(
         self,
         connector_call,
         values,
@@ -2244,7 +2256,7 @@ class EcommerceConnector(models.Model):
             errors, values.get("lines"), ecommerce_connection
         )
         if errors:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, errors, ecommerce_connection
             )
         fiscal_position_id = self._get_fiscal_position(
@@ -2300,12 +2312,12 @@ class EcommerceConnector(models.Model):
         company = int(values.get("companyId"))
         company_id, error = self._get_company(values)
         if error:
-            return self._create_sale(connector_call, values, error)
+            return self._create_response(connector_call, values, error)
         ecommerce_connection_id, error = self._get_ecommerce_connection(
             values, company_id
         )
         if error:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, error, ecommerce_connection_id
             )
 
@@ -2328,7 +2340,7 @@ class EcommerceConnector(models.Model):
                 errors,
                 "Sale {} (id {}) is already imported.".format(number, values.get("id")),
             )
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, errors, ecommerce_connection_id
             )
 
@@ -2336,20 +2348,21 @@ class EcommerceConnector(models.Model):
         move_id = False
         errors = self._check_has_country(errors, company_id)
         if errors:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, errors, ecommerce_connection_id
             )
 
         errors = self._check_values(errors, values, company_id, ecommerce_connection_id)
         if errors:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, errors, ecommerce_connection_id
             )
 
         order_vals = self._get_order_vals(
             values, ecommerce_connection_id, company_id, connector_call, number, errors
         )
-
+        if order_vals.get("status") == "error":
+            return order_vals
         order_id = self.env["sale.order"].with_company(company).create(order_vals)
         order_id.flush()
         order_id.action_confirm()
@@ -2379,7 +2392,7 @@ class EcommerceConnector(models.Model):
                 order_id.action_cancel()
                 order_id.unlink()
 
-        return self._create_sale(
+        return self._create_response(
             connector_call,
             values,
             errors,

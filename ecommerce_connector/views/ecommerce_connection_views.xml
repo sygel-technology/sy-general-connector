@@ -36,6 +36,11 @@
                                 attrs="{'invisible': [('create_invoice', '=', False)]}"
                             />
                                 <field name="invoice_policy" />
+                                <field name="has_custom_precision_digits" />
+                                <field
+                                name="precision_digits"
+                                attrs="{'invisible': [('has_custom_precision_digits', '=', False)]}"
+                            />
                             </group>
                     </group>
                     <group>

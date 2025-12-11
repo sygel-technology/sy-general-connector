@@ -963,7 +963,10 @@ class EcommerceConnector(models.Model):
             )
             if amount_paid > float(values.get("total")):
                 errors = self._write_errors(
-                    errors, "Paid amount cannot be higher than total amount."
+                    errors,
+                    "Paid amount ({}) cannot be higher than total amount ({}).".format(
+                        amount_paid, values.get("total")
+                    ),
                 )
             for payment in values.get("payments"):
                 payment_mode_id = self.env["account.payment.mode"].search(
@@ -1182,7 +1185,7 @@ class EcommerceConnector(models.Model):
             errors = self._check_vat(errors, values)
         return errors
 
-    def _check_invoice(self, values, move, errors):
+    def _check_invoice(self, values, move, errors, ecommerce_connection_id):
         """Returns a string with the errors
 
         :param values: dictionary with the valus to be used to compare to
@@ -1192,54 +1195,65 @@ class EcommerceConnector(models.Model):
         """
         if (
             float_compare(
-                float(values.get("total")), move.amount_total, precision_digits=2
+                float(values.get("total")),
+                move.amount_total,
+                precision_digits=ecommerce_connection_id.precision_digits,
             )
             != 0
         ):
             errors = self._write_errors(
                 errors,
-                "Total in sales currency does not match the value sent with the call.",
+                "Total in sales currency ({}) does not match "
+                "the value sent with the call ({}).".format(
+                    move.amount_total, values.get("total")
+                ),
             )
         if (
             float_compare(
                 float(values.get("totalCompany")),
                 move.amount_total_signed,
-                precision_digits=2,
+                precision_digits=ecommerce_connection_id.precision_digits,
             )
             != 0
         ):
             errors = self._write_errors(
                 errors,
-                "Total in company currency does not match the value sent with "
-                "the call.",
+                "Total in company currency ({}) does not match the value sent with "
+                "the call ({}).".format(
+                    move.amount_total_signed, values.get("totalCompany")
+                ),
             )
         if (
             float_compare(
-                float(values.get("taxTotal")), move.amount_tax, precision_digits=2
+                float(values.get("taxTotal")),
+                move.amount_tax,
+                precision_digits=ecommerce_connection_id.precision_digits,
             )
             != 0
         ):
             errors = self._write_errors(
                 errors,
-                "Tax amount in sales currency does not match the value sent "
-                "with the call.",
+                "Tax amount in sales currency ({}) does not match the value sent "
+                "with the call ({}).".format(move.amount_tax, values.get("taxTotal")),
             )
         if (
             float_compare(
                 float(values.get("taxTotalCompany")),
                 move.amount_tax_signed,
-                precision_digits=2,
+                precision_digits=ecommerce_connection_id.precision_digits,
             )
             != 0
         ):
             errors = self._write_errors(
                 errors,
-                "Tax amount in company currency does not match the value sent "
-                "with the call.",
+                "Tax amount in company currency ({}) does not match the value sent "
+                "with the call ({}).".format(
+                    move.amount_tax_signed, values.get("taxTotalCompany")
+                ),
             )
         return errors
 
-    def _check_invoice_lines(self, values, move, errors):
+    def _check_invoice_lines(self, values, move, errors, ecommerce_connection_id):
         """Returns a string with the errors
 
         :param values: dictionary with the valus to be used to compare to
@@ -1255,31 +1269,37 @@ class EcommerceConnector(models.Model):
                 float_compare(
                     float(line.get("total")),
                     invoice_line.price_total,
-                    precision_digits=2,
+                    precision_digits=ecommerce_connection_id.precision_digits,
                 )
                 != 0
             ):
                 errors = self._write_errors(
                     errors,
-                    "Total in sales currency in line with ID %s does not match "
-                    "the value sent with the call." % line.get("id"),
+                    "Total in sales currency ({}) in line with ID {} does not match "
+                    "the value sent with the call ({}).".format(
+                        invoice_line.price_total, line.get("id"), line.get("total")
+                    ),
                 )
             if (
                 float_compare(
                     float(line.get("subtotal")),
                     invoice_line.price_subtotal,
-                    precision_digits=2,
+                    precision_digits=ecommerce_connection_id.precision_digits,
                 )
                 != 0
             ):
                 errors = self._write_errors(
                     errors,
-                    "Subtotal in sales currency in line with ID %s does not "
-                    "match the value sent with the call." % line.get("id"),
+                    "Subtotal in sales currency ({}) in line with ID {} does not "
+                    "match the value sent with the call ({}).".format(
+                        invoice_line.price_subtotal,
+                        line.get("id"),
+                        line.get("subtotal"),
+                    ),
                 )
         return errors
 
-    def _check_shipping_lines(self, values, move, errors):
+    def _check_shipping_lines(self, values, move, errors, ecommerce_connection_id):
         """Returns a string with the errors
 
         :param values: dictionary with the valus to be used to compare to
@@ -1303,20 +1323,25 @@ class EcommerceConnector(models.Model):
                     compare_field = "Subtotal"
                 if (
                     float_compare(
-                        float(line.get("unitPrice")), compare_val, precision_digits=2
+                        float(line.get("unitPrice")),
+                        compare_val,
+                        precision_digits=ecommerce_connection_id.precision_digits,
                     )
                     != 0
                 ):
                     errors = self._write_errors(
                         errors,
-                        "{} in sales currency in shipping line with ID {} does "
-                        "not match the value sent with the call.".format(
-                            compare_field, line.get("id")
+                        "{} in sales currency ({}) in shipping line with ID {} does "
+                        "not match the value sent with the call ({}).".format(
+                            compare_val,
+                            compare_field,
+                            line.get("id"),
+                            line.get("unitPrice"),
                         ),
                     )
         return errors
 
-    def _check_invoice_payments(self, values, move, errors):
+    def _check_invoice_payments(self, values, move, errors, ecommerce_connection_id):
         """Returns a string with the errors
 
         :param values: dictionary with the values to be used to compare to
@@ -1346,14 +1371,18 @@ class EcommerceConnector(models.Model):
                     and float_compare(
                         float(payment_id.amount_signed),
                         float(payment.get("unitPrice")),
-                        precision_digits=2,
+                        precision_digits=ecommerce_connection_id.precision_digits,
                     )
                     != 0
                 ):
                     errors = self._write_errors(
                         errors,
-                        "Amount in invoice currency for payment with ID {} does"
-                        " not match.".format(payment.get("id")),
+                        "Amount in invoice currency ({}) for payment with ID {} does"
+                        " not match the value sent with the call ({}).".format(
+                            payment_id.amount_signed,
+                            payment.get("id"),
+                            payment.get("unitPrice"),
+                        ),
                     )
         if errors:
             errors = self._write_errors(
@@ -1433,7 +1462,9 @@ class EcommerceConnector(models.Model):
                 )
             return errors
 
-    def _check_invoice_shipping_lines(self, values, move, errors):
+    def _check_invoice_shipping_lines(
+        self, values, move, errors, ecommerce_connection_id
+    ):
         """Returns a string with the errors
 
         :param values: dictionary with the valus to be used to compare to
@@ -1450,20 +1481,22 @@ class EcommerceConnector(models.Model):
                     float_compare(
                         float(line.get("unitPrice")),
                         shipping_line.price_subtotal,
-                        precision_digits=2,
+                        precision_digits=ecommerce_connection_id.precision_digits,
                     )
                     != 0
                 ):
                     errors = self._write_errors(
                         errors,
-                        "Subtotal in sales currency in shipping line with ID "
-                        "{} does not match the value sent with the call.".format(
-                            line.get("id")
+                        "Subtotal in sales currency ({}) in shipping line with ID "
+                        "{} does not match the value sent with the call ({}).".format(
+                            shipping_line.price_subtotal,
+                            line.get("id"),
+                            line.get("unitPrice"),
                         ),
                     )
         return errors
 
-    def _check_sale_order(self, values, order, errors):
+    def _check_sale_order(self, values, order, errors, ecommerce_connection_id):
         """Returns a string with the errors
 
         :param values: dictionary with the valus to be used to compare to
@@ -1473,28 +1506,39 @@ class EcommerceConnector(models.Model):
         """
         if (
             float_compare(
-                float(values.get("total")), order.amount_total, precision_digits=2
+                float(values.get("total")),
+                order.amount_total,
+                precision_digits=ecommerce_connection_id.precision_digits,
             )
             != 0
         ):
             errors = self._write_errors(
                 errors,
-                "Total in sales currency does not match the value sent with the call.",
+                "Total in sales currency ({}) does not match "
+                "the value sent with the call ({}).".format(
+                    order.amount_total,
+                    values.get("total"),
+                ),
             )
         if (
             float_compare(
-                float(values.get("taxTotal")), order.amount_tax, precision_digits=2
+                float(values.get("taxTotal")),
+                order.amount_tax,
+                precision_digits=ecommerce_connection_id.precision_digits,
             )
             != 0
         ):
             errors = self._write_errors(
                 errors,
-                "Tax amount in sales currency does not match the value sent "
-                "with the call.",
+                "Tax amount in sales currency ({}) does not match the value sent "
+                "with the call ({}).".format(
+                    order.amount_tax,
+                    values.get("taxTotal"),
+                ),
             )
         return errors
 
-    def _check_sale_lines(self, values, order, errors):
+    def _check_sale_lines(self, values, order, errors, ecommerce_connection_id):
         """Returns a string with the errors
 
         :param values: dictionary with the valus to be used to compare to
@@ -1510,31 +1554,39 @@ class EcommerceConnector(models.Model):
                 float_compare(
                     float(line.get("total")),
                     sale_order_line.price_total,
-                    precision_digits=2,
+                    precision_digits=ecommerce_connection_id.precision_digits,
                 )
                 != 0
             ):
                 errors = self._write_errors(
                     errors,
-                    "Total in sales currency in line with ID {} does not match"
-                    " the value sent with the call.".format(line.get("id")),
+                    "Total in sales currency ({}) in line with ID {} does not match"
+                    " the value sent with the call ({}).".format(
+                        sale_order_line.price_total, line.get("id"), line.get("total")
+                    ),
                 )
             if (
                 float_compare(
                     float(line.get("subtotal")),
                     sale_order_line.price_subtotal,
-                    precision_digits=2,
+                    precision_digits=ecommerce_connection_id.precision_digits,
                 )
                 != 0
             ):
                 errors = self._write_errors(
                     errors,
-                    "Subtotal in sales currency in line with ID {} does not "
-                    "match the value sent with the call.".format(line.get("id")),
+                    "Subtotal in sales currency ({}) in line with ID {} does not "
+                    "match the value sent with the call ({}).".format(
+                        sale_order_line.price_subtotal,
+                        line.get("id"),
+                        line.get("subtotal"),
+                    ),
                 )
         return errors
 
-    def _check_sale_shipping_lines(self, values, order, errors):
+    def _check_sale_shipping_lines(
+        self, values, order, errors, ecommerce_connection_id
+    ):
         """Returns a string with the errors
 
         :param values: dictionary with the valus to be used to compare to
@@ -1551,15 +1603,17 @@ class EcommerceConnector(models.Model):
                     float_compare(
                         float(line.get("unitPrice")),
                         shipping_line.price_subtotal,
-                        precision_digits=2,
+                        precision_digits=ecommerce_connection_id.precision_digits,
                     )
                     != 0
                 ):
                     errors = self._write_errors(
                         errors,
-                        "Subtotal in sales currency in shipping line with ID "
-                        "{} does not match the value sent with the call.".format(
-                            line.get("id")
+                        "Subtotal in sales currency ({}) in shipping line with ID "
+                        "{} does not match the value sent with the call ({}).".format(
+                            shipping_line.price_subtotal,
+                            line.get("id"),
+                            line.get("unitPrice"),
                         ),
                     )
         return errors
@@ -2370,9 +2424,15 @@ class EcommerceConnector(models.Model):
             moves = order_id.with_company(company)._create_invoices()
             if moves:
                 moves.write({"ecommerce_id": order_id.ecommerce_id})
-            errors = self._check_invoice(values, moves[0], errors)
-            errors = self._check_invoice_lines(values, moves[0], errors)
-            errors = self._check_invoice_shipping_lines(values, moves[0], errors)
+            errors = self._check_invoice(
+                values, moves[0], errors, ecommerce_connection_id
+            )
+            errors = self._check_invoice_lines(
+                values, moves[0], errors, ecommerce_connection_id
+            )
+            errors = self._check_invoice_shipping_lines(
+                values, moves[0], errors, ecommerce_connection_id
+            )
             if errors:
                 moves.unlink()
                 order_id.action_cancel()
@@ -2382,12 +2442,18 @@ class EcommerceConnector(models.Model):
                 move_id = moves[0]
                 self._create_payments(moves, values)
                 payment_errors = self._check_invoice_payments(
-                    values, move_id, payment_errors
+                    values, move_id, payment_errors, ecommerce_connection_id
                 )
         else:
-            errors = self._check_sale_order(values, order_id, errors)
-            errors = self._check_sale_lines(values, order_id, errors)
-            errors = self._check_sale_shipping_lines(values, order_id, errors)
+            errors = self._check_sale_order(
+                values, order_id, errors, ecommerce_connection_id
+            )
+            errors = self._check_sale_lines(
+                values, order_id, errors, ecommerce_connection_id
+            )
+            errors = self._check_sale_shipping_lines(
+                values, order_id, errors, ecommerce_connection_id
+            )
             if errors:
                 order_id.action_cancel()
                 order_id.unlink()

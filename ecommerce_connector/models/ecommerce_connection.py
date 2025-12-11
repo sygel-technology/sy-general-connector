@@ -86,6 +86,8 @@ class EcommerceConnection(models.Model):
         help="If checked, the searched contacts will be updated "
         "with the remaining partner data of the request"
     )
+    has_custom_precision_digits = fields.Boolean()
+    precision_digits = fields.Integer(default=2)
 
     _sql_constraints = [
         (

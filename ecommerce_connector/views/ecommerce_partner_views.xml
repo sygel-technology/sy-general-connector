@@ -14,6 +14,20 @@
             </tree>
         </field>
     </record>
+    <record id="ecommerce_partner_search" model="ir.ui.view">
+        <field name="name">ecommerce.partner.search</field>
+        <field name="model">ecommerce.partner</field>
+        <field name="arch" type="xml">
+            <search>
+                <field
+                    name="ecommerce_id"
+                    filter_domain="[('ecommerce_id', '=', self)]"
+                />
+                <field name="partner_id" />
+                <field name="ecommerce_connection_id" />
+            </search>
+        </field>
+    </record>
     <record id="ecommerce_partner_action" model="ir.actions.act_window">
         <field name="name">Ecommerce Partner</field>
         <field name="type">ir.actions.act_window</field>

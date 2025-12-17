@@ -1265,7 +1265,15 @@ class EcommerceConnector(models.Model):
             invoice_line = move.invoice_line_ids.filtered(
                 lambda a, line=line: a.ecommerce_id == int(line.get("id"))
             )
-            if (
+            error = False
+            if len(invoice_line) != 1:
+                error = True
+                errors = self._write_errors(
+                    errors,
+                    "A unique invoice line with ID {} could not be found."
+                    " Found {} lines".format(line.get("id"), len(invoice_line)),
+                )
+            if not error and (
                 float_compare(
                     float(line.get("total")),
                     invoice_line.price_total,
@@ -1280,7 +1288,7 @@ class EcommerceConnector(models.Model):
                         invoice_line.price_total, line.get("id"), line.get("total")
                     ),
                 )
-            if (
+            if not error and (
                 float_compare(
                     float(line.get("subtotal")),
                     invoice_line.price_subtotal,

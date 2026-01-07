@@ -86,8 +86,18 @@ class EcommerceConnection(models.Model):
         help="If checked, the searched contacts will be updated "
         "with the remaining partner data of the request"
     )
-    has_custom_precision_digits = fields.Boolean()
-    precision_digits = fields.Integer(default=2)
+    has_custom_precision_digits = fields.Boolean(
+        help="If set, a different precision will be used in the constraints that "
+        "raise an error when invoice prices do not match between Odoo and "
+        "the e-commerce platform."
+    )
+    precision_digits = fields.Integer(
+        default=2,
+        help="Precision digits used in invoice price checks. "
+        "This value defines the number of decimal places that must match "
+        "between Odoo and the e-commerce prices. "
+        "The higher the precision, the more restrictive the check.",
+    )
 
     _sql_constraints = [
         (

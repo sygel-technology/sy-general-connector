@@ -7,7 +7,7 @@ from odoo import fields, models
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
-    ecommerce_id = fields.Integer(string="Ecommerce ID")
+    ecommerce_id = fields.Integer(string="Ecommerce ID", copy=False)
     ecommerce_connector_id = fields.Many2one(
         string="Ecommerce Connection", comodel_name="ecommerce.connection"
     )

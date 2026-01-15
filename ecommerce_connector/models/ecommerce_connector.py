@@ -6,7 +6,7 @@ from base64 import b64encode
 from datetime import datetime
 
 from odoo import api, fields, models
-from odoo.tools import float_compare
+from odoo.tools import float_is_zero
 
 
 class EcommerceConnector(models.Model):
@@ -1193,13 +1193,9 @@ class EcommerceConnector(models.Model):
         :param move: account.move record with the newly created invoice
         :param errors: string with the current errors
         """
-        if (
-            float_compare(
-                float(values.get("total")),
-                move.amount_total,
-                precision_digits=ecommerce_connection_id.precision_digits,
-            )
-            != 0
+        if not float_is_zero(
+            float(values.get("total")) - move.amount_total,
+            precision_digits=ecommerce_connection_id.precision_digits,
         ):
             errors = self._write_errors(
                 errors,
@@ -1208,13 +1204,9 @@ class EcommerceConnector(models.Model):
                     move.amount_total, values.get("total")
                 ),
             )
-        if (
-            float_compare(
-                float(values.get("totalCompany")),
-                move.amount_total_signed,
-                precision_digits=ecommerce_connection_id.precision_digits,
-            )
-            != 0
+        if not float_is_zero(
+            float(values.get("totalCompany")) - move.amount_total_signed,
+            precision_digits=ecommerce_connection_id.precision_digits,
         ):
             errors = self._write_errors(
                 errors,
@@ -1223,26 +1215,18 @@ class EcommerceConnector(models.Model):
                     move.amount_total_signed, values.get("totalCompany")
                 ),
             )
-        if (
-            float_compare(
-                float(values.get("taxTotal")),
-                move.amount_tax,
-                precision_digits=ecommerce_connection_id.precision_digits,
-            )
-            != 0
+        if not float_is_zero(
+            float(values.get("taxTotal")) - move.amount_tax,
+            precision_digits=ecommerce_connection_id.precision_digits,
         ):
             errors = self._write_errors(
                 errors,
                 "Tax amount in sales currency ({}) does not match the value sent "
                 "with the call ({}).".format(move.amount_tax, values.get("taxTotal")),
             )
-        if (
-            float_compare(
-                float(values.get("taxTotalCompany")),
-                move.amount_tax_signed,
-                precision_digits=ecommerce_connection_id.precision_digits,
-            )
-            != 0
+        if not float_is_zero(
+            float(values.get("taxTotalCompany")) - move.amount_tax_signed,
+            precision_digits=ecommerce_connection_id.precision_digits,
         ):
             errors = self._write_errors(
                 errors,
@@ -1274,12 +1258,10 @@ class EcommerceConnector(models.Model):
                     " Found {} lines".format(line.get("id"), len(invoice_line)),
                 )
             if not error and (
-                float_compare(
-                    float(line.get("total")),
-                    invoice_line.price_total,
+                not float_is_zero(
+                    float(line.get("total")) - invoice_line.price_total,
                     precision_digits=ecommerce_connection_id.precision_digits,
                 )
-                != 0
             ):
                 errors = self._write_errors(
                     errors,
@@ -1289,12 +1271,10 @@ class EcommerceConnector(models.Model):
                     ),
                 )
             if not error and (
-                float_compare(
-                    float(line.get("subtotal")),
-                    invoice_line.price_subtotal,
+                not float_is_zero(
+                    float(line.get("subtotal")) - invoice_line.price_subtotal,
                     precision_digits=ecommerce_connection_id.precision_digits,
                 )
-                != 0
             ):
                 errors = self._write_errors(
                     errors,
@@ -1329,13 +1309,9 @@ class EcommerceConnector(models.Model):
                 else:
                     compare_val = shipping_line.price_subtotal
                     compare_field = "Subtotal"
-                if (
-                    float_compare(
-                        float(line.get("unitPrice")),
-                        compare_val,
-                        precision_digits=ecommerce_connection_id.precision_digits,
-                    )
-                    != 0
+                if not float_is_zero(
+                    float(line.get("unitPrice")) - compare_val,
+                    precision_digits=ecommerce_connection_id.precision_digits,
                 ):
                     errors = self._write_errors(
                         errors,
@@ -1374,14 +1350,9 @@ class EcommerceConnector(models.Model):
                         errors,
                         "Payment with ID %s could not be found." % payment.get("id"),
                     )
-                elif (
-                    payment_id
-                    and float_compare(
-                        float(payment_id.amount_signed),
-                        float(payment.get("unitPrice")),
-                        precision_digits=ecommerce_connection_id.precision_digits,
-                    )
-                    != 0
+                elif payment_id and not float_is_zero(
+                    float(payment_id.amount_signed) - float(payment.get("unitPrice")),
+                    precision_digits=ecommerce_connection_id.precision_digits,
                 ):
                     errors = self._write_errors(
                         errors,
@@ -1485,13 +1456,9 @@ class EcommerceConnector(models.Model):
                 shipping_line = move.invoice_line_ids.filtered(
                     lambda a, line=line: a.ecommerce_shipping_id == int(line.get("id"))
                 )
-                if (
-                    float_compare(
-                        float(line.get("unitPrice")),
-                        shipping_line.price_subtotal,
-                        precision_digits=ecommerce_connection_id.precision_digits,
-                    )
-                    != 0
+                if not float_is_zero(
+                    float(line.get("unitPrice")) - shipping_line.price_subtotal,
+                    precision_digits=ecommerce_connection_id.precision_digits,
                 ):
                     errors = self._write_errors(
                         errors,
@@ -1512,13 +1479,9 @@ class EcommerceConnector(models.Model):
         :param move: sale.order record with the newly created invoice
         :param errors: string with the current errors
         """
-        if (
-            float_compare(
-                float(values.get("total")),
-                order.amount_total,
-                precision_digits=ecommerce_connection_id.precision_digits,
-            )
-            != 0
+        if not float_is_zero(
+            float(values.get("total")) - order.amount_total,
+            precision_digits=ecommerce_connection_id.precision_digits,
         ):
             errors = self._write_errors(
                 errors,
@@ -1528,13 +1491,9 @@ class EcommerceConnector(models.Model):
                     values.get("total"),
                 ),
             )
-        if (
-            float_compare(
-                float(values.get("taxTotal")),
-                order.amount_tax,
-                precision_digits=ecommerce_connection_id.precision_digits,
-            )
-            != 0
+        if not float_is_zero(
+            float(values.get("taxTotal")) - order.amount_tax,
+            precision_digits=ecommerce_connection_id.precision_digits,
         ):
             errors = self._write_errors(
                 errors,
@@ -1558,13 +1517,9 @@ class EcommerceConnector(models.Model):
             sale_order_line = order.order_line.filtered(
                 lambda a, line=line: a.ecommerce_id == int(line.get("id"))
             )
-            if (
-                float_compare(
-                    float(line.get("total")),
-                    sale_order_line.price_total,
-                    precision_digits=ecommerce_connection_id.precision_digits,
-                )
-                != 0
+            if not float_is_zero(
+                float(line.get("total")) - sale_order_line.price_total,
+                precision_digits=ecommerce_connection_id.precision_digits,
             ):
                 errors = self._write_errors(
                     errors,
@@ -1573,13 +1528,9 @@ class EcommerceConnector(models.Model):
                         sale_order_line.price_total, line.get("id"), line.get("total")
                     ),
                 )
-            if (
-                float_compare(
-                    float(line.get("subtotal")),
-                    sale_order_line.price_subtotal,
-                    precision_digits=ecommerce_connection_id.precision_digits,
-                )
-                != 0
+            if not float_is_zero(
+                float(line.get("subtotal")) - sale_order_line.price_subtotal,
+                precision_digits=ecommerce_connection_id.precision_digits,
             ):
                 errors = self._write_errors(
                     errors,
@@ -1607,13 +1558,9 @@ class EcommerceConnector(models.Model):
                 shipping_line = order.order_line.filtered(
                     lambda a, line=line: a.ecommerce_shipping_id == int(line.get("id"))
                 )
-                if (
-                    float_compare(
-                        float(line.get("unitPrice")),
-                        shipping_line.price_subtotal,
-                        precision_digits=ecommerce_connection_id.precision_digits,
-                    )
-                    != 0
+                if not float_is_zero(
+                    float(line.get("unitPrice")) - shipping_line.price_subtotal,
+                    precision_digits=ecommerce_connection_id.precision_digits,
                 ):
                     errors = self._write_errors(
                         errors,

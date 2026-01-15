@@ -558,20 +558,27 @@ class EcommerceConnector(models.Model):
 
         return order_lines
 
-    def _get_credit_note_line(self, line, ecommerce_connection):
+    def _get_credit_note_line(self, line, ecommerce_connection, credit_note):
         """Returns a dictionary with values of all the lines of a new credit note
 
         :param line: dictionary with the credit note line info
         :param ecommerce_connection: record of ecommerce.connection
         """
         product_id = self._find_product(line, ecommerce_connection)
+        tax_ids = product_id.taxes_id.filtered(
+            lambda tax: tax.company_id == credit_note.company_id
+        )
+        if credit_note.fiscal_position_id and tax_ids:
+            tax_ids = credit_note.fiscal_position_id.map_tax(tax_ids)
         return {
             "product_id": product_id.id,
             "price_unit": line.get("unitPrice"),
             "quantity": line.get("quantity"),
+            "tax_ids": tax_ids,
+            "discount": line.get("discount"),
         }
 
-    def _get_credit_note_lines(self, lines, ecommerce_connection):
+    def _get_credit_note_lines(self, lines, ecommerce_connection, credit_note):
         """Returns a dictionary with values of all the credit note lines
 
         :param lines: list of dictionaries with the credit note line info
@@ -580,7 +587,11 @@ class EcommerceConnector(models.Model):
         credit_note_lines = []
         for line in lines:
             credit_note_lines.append(
-                (0, 0, self._get_credit_note_line(line, ecommerce_connection))
+                (
+                    0,
+                    0,
+                    self._get_credit_note_line(line, ecommerce_connection, credit_note),
+                )
             )
         return credit_note_lines
 
@@ -1786,15 +1797,15 @@ class EcommerceConnector(models.Model):
         connector_call = self._create_connector_call(values, "update_contact")
         company, error = self._get_company(values)
         if error:
-            return self._create_sale(connector_call, values, error)
+            return self._create_response(connector_call, values, error)
         ecommerce_connection, error = self._get_ecommerce_connection(values, company)
         if error:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, error, ecommerce_connection
             )
         domain = self._get_contact_domain(values, ecommerce_connection)
         if not domain:
-            return self._create_sale(
+            return self._create_response(
                 connector_call,
                 values,
                 "The partner was not found",
@@ -1809,7 +1820,7 @@ class EcommerceConnector(models.Model):
         elif partner_id.filtered(lambda p: p.type in ["invoice", "delivery"]):
             error = "The partner cannot be a invoice or delivery address"
         if error:
-            return self._create_sale(
+            return self._create_response(
                 connector_call, values, error, ecommerce_connection
             )
         self._update_partner(partner_id, values, ecommerce_connection)
@@ -2478,7 +2489,7 @@ class EcommerceConnector(models.Model):
 
     @api.model
     def external_create_credit_note(self, values):
-        self._create_connector_call(values, "credit")
+        connector_call = self._create_connector_call(values, "credit")
         vals = False
         errors = ""
         credit_note = False
@@ -2487,10 +2498,16 @@ class EcommerceConnector(models.Model):
             file = False
             if not errors:
                 company = int(values.get("companyId"))
-                ecommerce_connection = values.get("ecommerceId")
-                if not ecommerce_connection:
-                    errors = self._write_errors(
-                        errors, "Ecommerce Connection is missing."
+                company_id, error = self._get_company(values)
+                if error:
+                    return self._create_response(connector_call, values, error)
+                values.get("ecommerceId")
+                ecommerce_connection_id, error = self._get_ecommerce_connection(
+                    values, company_id
+                )
+                if error:
+                    return self._create_response(
+                        connector_call, values, error, ecommerce_connection_id
                     )
                 if not errors:
                     invoice_id = (
@@ -2502,7 +2519,7 @@ class EcommerceConnector(models.Model):
                                 (
                                     "ecommerce_connector_id",
                                     "=",
-                                    int(ecommerce_connection),
+                                    ecommerce_connection_id.id,
                                 ),
                             ]
                         )
@@ -2536,41 +2553,22 @@ class EcommerceConnector(models.Model):
                         credit_note = self.env["account.move"].browse(
                             credit_note_action.get("res_id")
                         )
-                        if refund_method == "refund":
-                            ecommerce_connection_id = self.env[
-                                "ecommerce.connection"
-                            ].search(
-                                [
-                                    (
-                                        "ecommerce_id",
-                                        "=",
-                                        int(values.get("ecommerceId")),
-                                    ),
-                                    ("company_id", "=", company),
-                                ],
-                                limit=1,
+                        if refund_method == "refund" and not errors:
+                            errors = self._check_credit_lines(
+                                errors,
+                                invoice_id,
+                                values.get("lines"),
+                                ecommerce_connection_id,
                             )
-                            if not ecommerce_connection_id:
-                                errors = self._write_errors(
-                                    errors, "Ecommerce Connection not found."
-                                )
                             if not errors:
-                                errors = self._check_credit_lines(
-                                    errors,
-                                    invoice_id,
+                                credit_note.write({"invoice_line_ids": False})
+                                invoice_lines = self._get_credit_note_lines(
                                     values.get("lines"),
                                     ecommerce_connection_id,
+                                    credit_note,
                                 )
-                                if not errors:
-                                    credit_note.write({"invoice_line_ids": False})
-                                    invoice_lines = self._get_credit_note_lines(
-                                        values.get("lines"),
-                                        ecommerce_connection_id,
-                                    )
-                                    credit_note.write(
-                                        {"invoice_line_ids": invoice_lines}
-                                    )
-                                    credit_note.action_post()
+                                credit_note.write({"invoice_line_ids": invoice_lines})
+                                credit_note.action_post()
                         if not errors:
                             file = self.env.ref(
                                 "account.account_invoices"

@@ -7,8 +7,8 @@ from odoo import fields, models
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
-    ecommerce_id = fields.Integer(string="Ecommerce ID")
-    ecommerce_shipping_id = fields.Integer(string="Ecommerce Shipping ID")
+    ecommerce_id = fields.Integer(string="Ecommerce ID", copy=False)
+    ecommerce_shipping_id = fields.Integer(string="Ecommerce Shipping ID", copy=False)
 
     def _prepare_invoice_line(self, **optional_values):
         res = super()._prepare_invoice_line(**optional_values)

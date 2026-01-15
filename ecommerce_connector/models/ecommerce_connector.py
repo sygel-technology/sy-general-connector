@@ -558,20 +558,27 @@ class EcommerceConnector(models.Model):
 
         return order_lines
 
-    def _get_credit_note_line(self, line, ecommerce_connection):
+    def _get_credit_note_line(self, line, ecommerce_connection, credit_note):
         """Returns a dictionary with values of all the lines of a new credit note
 
         :param line: dictionary with the credit note line info
         :param ecommerce_connection: record of ecommerce.connection
         """
         product_id = self._find_product(line, ecommerce_connection)
+        tax_ids = product_id.taxes_id.filtered(
+            lambda tax: tax.company_id == credit_note.company_id
+        )
+        if credit_note.fiscal_position_id and tax_ids:
+            tax_ids = credit_note.fiscal_position_id.map_tax(tax_ids)
         return {
             "product_id": product_id.id,
             "price_unit": line.get("unitPrice"),
             "quantity": line.get("quantity"),
+            "tax_ids": tax_ids,
+            "discount": line.get("discount"),
         }
 
-    def _get_credit_note_lines(self, lines, ecommerce_connection):
+    def _get_credit_note_lines(self, lines, ecommerce_connection, credit_note):
         """Returns a dictionary with values of all the credit note lines
 
         :param lines: list of dictionaries with the credit note line info
@@ -580,7 +587,11 @@ class EcommerceConnector(models.Model):
         credit_note_lines = []
         for line in lines:
             credit_note_lines.append(
-                (0, 0, self._get_credit_note_line(line, ecommerce_connection))
+                (
+                    0,
+                    0,
+                    self._get_credit_note_line(line, ecommerce_connection, credit_note),
+                )
             )
         return credit_note_lines
 
@@ -2554,6 +2565,7 @@ class EcommerceConnector(models.Model):
                                 invoice_lines = self._get_credit_note_lines(
                                     values.get("lines"),
                                     ecommerce_connection_id,
+                                    credit_note,
                                 )
                                 credit_note.write({"invoice_line_ids": invoice_lines})
                                 credit_note.action_post()

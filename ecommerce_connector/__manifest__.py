@@ -4,7 +4,7 @@
 {
     "name": "Ecommerce Connector",
     "summary": "General E-Commerce Integration",
-    "version": "15.0.3.0.0",
+    "version": "15.0.3.0.1",
     "category": "Ecommerce",
     "author": "Sygel",
     "website": "https://github.com/sygel-technology/sy-general-connector",

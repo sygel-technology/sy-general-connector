@@ -4,9 +4,10 @@
 {
     "name": "Ecommerce Connector - SII",
     "summary": "SII values and procedures for ecommerce sale orders.",
-    "version": "14.0.1.0.0",
+    "version": "15.0.1.0.0",
     "category": "Custom",
     "author": "Sygel",
+    "website": "https://github.com/sygel-technology/sy-general-connector",
     "license": "AGPL-3",
     "application": False,
     "installable": True,

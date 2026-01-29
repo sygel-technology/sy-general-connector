@@ -10,6 +10,7 @@ setuptools.setup(
     install_requires=[
         'odoo-addon-ecommerce_connector>=15.0dev,<15.1dev',
         'odoo-addon-ecommerce_connector_sale_order_type>=15.0dev,<15.1dev',
+        'odoo-addon-ecommerce_connector_sii>=15.0dev,<15.1dev',
     ],
     classifiers=[
         'Programming Language :: Python',

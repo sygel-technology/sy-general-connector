@@ -17,6 +17,7 @@
         "base_vat",
         "account_fiscal_position_partner_type",
         "delivery",
+        # sale_invoice_policy
     ],
     "data": [
         "data/ecommerce_connector_call_seq.xml",

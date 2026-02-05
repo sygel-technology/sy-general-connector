@@ -1,3 +1,7 @@
+.. image:: https://odoo-community.org/readme-banner-image
+   :target: https://odoo-community.org/get-involved?utm_source=readme
+   :alt: Odoo Community Association
+
 ===================
 Ecommerce Connector
 ===================
@@ -13,7 +17,7 @@ Ecommerce Connector
 .. |badge1| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
+.. |badge2| image:: https://img.shields.io/badge/license-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-sygel--technology%2Fsy--general--connector-lightgray.png?logo=github
@@ -47,6 +51,37 @@ Usage
 
 Check the operations manual provided by Sygel.
 
+Known issues / Roadmap
+======================
+
+Future improvements detected for this module. They should be done in the
+next migrations to upper versions:
+
+-  **Create a minimal permission group for the connector bot**
+   Currently, orders are created by a user with maximum permissions
+   (settings/admin group). The module should provide a dedicated group
+   (e.g. *“General Connector Endpoint Runner”*) that depends only on the
+   required groups to create sales orders. Assigning only this group to
+   a user should guarantee the minimum permissions needed to create
+   orders.
+
+-  **Refactor to remove the dependency on ``sale_invoice_policy``** The
+   module currently relies on ``sale_invoice_policy`` even though it is
+   not declared in the manifest. If this module is not installed, some
+   order imports fail. An additional module should be created to
+   encapsulate and provide the ``sale_invoice_policy``-related
+   functionality.
+
+-  **Cleanup and encapsulation of duplicated code**
+
+-  **Add search views**
+
+-  **Add help tooltips to configuration fields**
+
+-  **Improve documentation**
+
+-  **Add unit tests**
+
 Bug Tracker
 ===========
 
@@ -68,8 +103,8 @@ Authors
 Contributors
 ------------
 
-- Manuel Regidor <manuel.regidor@sygel.es>
-- Valentín Vinagre <valentin.vinagre@sygel.es>
+-  Manuel Regidor <manuel.regidor@sygel.es>
+-  Valentín Vinagre <valentin.vinagre@sygel.es>
 
 Maintainers
 -----------

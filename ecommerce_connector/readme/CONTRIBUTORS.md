@@ -1,2 +1,5 @@
-- Manuel Regidor \<<manuel.regidor@sygel.es>\>
-- Valentín Vinagre \<<valentin.vinagre@sygel.es>\>
+- [Sygel](https://www.sygel.es):
+  - Manuel Regidor
+  - Alberto Martínez
+  - Valentin Vinagre
+  - Harald Panten

@@ -26,14 +26,11 @@
                             <field name="operation" />
                         </group>
                         <group>
-                            <field
-                                name="sale_order_id"
-                                attrs="{'invisible': [('sale_order_id', '=', False)]}"
-                            />
+                            <field name="sale_order_id" invisible="not sale_order_id" />
                             <field
                                 name="account_move_id"
                                 filename="file_name"
-                                attrs="{'invisible': [('account_move_id', '=', False)]}"
+                                insivible="not account_move_id"
                             />
                         </group>
                     </group>
@@ -44,11 +41,7 @@
                         <page string="Message Out" anem="message_out">
                             <field name="message_out" />
                         </page>
-                        <page
-                            string="Error"
-                            anem="error"
-                            attrs="{'invisible': [('state', '!=', 'error')]}"
-                        >
+                        <page string="Error" anem="error" invisible="state != 'error'">
                             <field name="error" />
                         </page>
                     </notebook>
@@ -56,12 +49,12 @@
             </form>
         </field>
     </record>
-    <record id="ecommerce_connector_call_view_tree" model="ir.ui.view">
-        <field name="name">ecommerce.connector.call.view.tree</field>
+    <record id="ecommerce_connector_call_view_list" model="ir.ui.view">
+        <field name="name">ecommerce.connector.call.view.list</field>
         <field name="model">ecommerce.connector.call</field>
-        <field name="type">tree</field>
+        <field name="type">list</field>
         <field name="arch" type="xml">
-            <tree
+            <list
                 create="0"
                 decoration-danger="state == 'error'"
                 decoration-success="state == 'done'"
@@ -72,7 +65,7 @@
                 <field name="ecommerce_connection_id" />
                 <field name="ecommerce_origin" />
                 <field name="state" />
-            </tree>
+            </list>
         </field>
     </record>
     <record id="ecommerce_connector_call_search" model="ir.ui.view">
@@ -96,11 +89,11 @@
         </field>
     </record>
     <record id="ecommerce_connector_call_action" model="ir.actions.act_window">
-        <field name="name">Ecommerce Connector Call</field>
+        <field name="name">Ecommerce Connector Calls</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">ecommerce.connector.call</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="ecommerce_connector_call_view_tree" />
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="ecommerce_connector_call_view_list" />
         <field
             name="context"
         >{"search_default_ecommerce_connector_call_draft":1, "search_default_ecommerce_connector_call_error":1}</field>

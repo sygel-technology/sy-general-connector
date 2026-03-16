@@ -7,4 +7,4 @@ from odoo import fields, models
 class AccountPayment(models.Model):
     _inherit = "account.payment"
 
-    ecommerce_payment_id = fields.Integer(string="Syliu Payment ID", copy=False)
+    ecommerce_payment_id = fields.Integer(string="Payment ID", copy=False)

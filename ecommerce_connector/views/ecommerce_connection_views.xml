@@ -13,49 +13,52 @@
                         name="web_ribbon"
                         title="Archived"
                         bg_color="bg-danger"
-                        attrs="{'invisible': [('active', '=', True)]}"
+                        invisible="active"
                     />
                     <div class="oe_title">
                         <label for="name" />
                         <h1>
                             <field name="name" class="oe_inline" />
                         </h1>
-                        <field name="active" invisible="1" />
+                        <field name="active" invisible="True" />
                     </div>
-                    <group>
+                    <group string="Identification">
                         <group>
                             <field name="ecommerce_id" />
-                        </group>
-                        <group>
                             <field name="company_id" />
                             <field name="lang" />
+                        </group>
+                    </group>
+                    <group>
+                        <group string="General options">
                             <field name="use_odoo_so_sequence" />
                             <field name="duplicate_invoice_name" />
                             <field name="check_customer_vat" />
-                            <field name="create_invoice" />
-                            <field
-                                name="validate_invoice"
-                                attrs="{'invisible': [('create_invoice', '=', False)]}"
-                            />
-                            <field name="invoice_policy" />
                             <field name="has_custom_precision_digits" />
                             <field
                                 name="precision_digits"
-                                attrs="{'invisible': [('has_custom_precision_digits', '=', False)]}"
+                                invisible="not has_custom_precision_digits"
+                            />
+                        </group>
+                        <group string="Invoicing Options">
+                            <field name="create_invoice" />
+                            <field
+                                name="validate_invoice"
+                                invisible="not create_invoice"
                             />
                         </group>
                     </group>
                     <group>
-                        <group string="Product Search">
-                            <field name="create_products_single_company" />
+                        <group string="Product Search Options">
                             <field name="product_search_rule" />
+                            <field name="create_products_single_company" />
                         </group>
-                        <group string="Contact Search">
-                            <field name="create_contacts_single_company" />
-                            <field name="contact_search_partner_type" />
+                        <group string="Contact Search Options">
                             <field name="contact_search_rule" />
                             <field name="shipping_address_search_rule" />
                             <field name="invoice_address_search_rule" />
+                            <field name="create_contacts_single_company" />
+                            <field name="contact_search_partner_type" />
                             <field name="update_contacts" />
                         </group>
                     </group>
@@ -63,22 +66,22 @@
             </form>
         </field>
     </record>
-    <record id="ecommerce_connection_view_tree" model="ir.ui.view">
-        <field name="name">ecommerce.connection.view.tree</field>
+    <record id="ecommerce_connection_view_list" model="ir.ui.view">
+        <field name="name">ecommerce.connection.view.list</field>
         <field name="model">ecommerce.connection</field>
-        <field name="type">tree</field>
+        <field name="type">list</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name" />
                 <field name="ecommerce_id" />
-            </tree>
+            </list>
         </field>
     </record>
     <record id="ecommerce_connection_action" model="ir.actions.act_window">
         <field name="name">Ecommerce Connection</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">ecommerce.connection</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="ecommerce_connection_view_tree" />
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="ecommerce_connection_view_list" />
     </record>
 </odoo>

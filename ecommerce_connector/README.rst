@@ -17,7 +17,7 @@ Ecommerce Connector
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-sygel--technology%2Fsy--general--connector-lightgray.png?logo=github
-    :target: https://github.com/sygel-technology/sy-general-connector/tree/15.0/ecommerce_connector
+    :target: https://github.com/sygel-technology/sy-general-connector/tree/18.0/ecommerce_connector
     :alt: sygel-technology/sy-general-connector
 
 |badge1| |badge2| |badge3|
@@ -32,20 +32,56 @@ contacts and products if needed.
 .. contents::
    :local:
 
-Installation
-============
-
-Check the operations manual provided by Sygel.
-
 Configuration
 =============
 
-Check the operations manual provided by Sygel.
+1. **Enable the connector on the company**: Go to Settings > Companies >
+   [your company], open the Ecommerce Connector tab and activate the
+   checkbox Accept Ecommerce Connector.
+
+2. **Create a Connection**: Go to Ecommerce Connector > Connection and
+   create a new record:
+
+   -  Name: a descriptive label (e.g. "Shop")
+   -  Ecommerce ID: a unique numeric identifier agreed with the
+      e-commerce platform
+   -  Company: the Odoo company that will own the imported orders
+   -  Language: language used for multilanguage fields
+
+3. **Configure order and invoice behaviour**:
+
+   -  Enable Create Invoice if invoices should be generated
+      automatically
+   -  Enable Validate Invoice to confirm them automatically
+   -  Enable Use Odoo Sales Seq. to use Odoo numbering instead of the
+      ecommerce reference
+   -  Enable Check Customer VAT for VAT validation on business customers
+
+4. **Configure search rules**: Define how records are matched:
+
+   -  Products: Ecommerce ID, SKU or Barcode
+   -  Contacts: Ecommerce ID, Email, VAT or Contact Info
+   -  Addresses: Ecommerce ID, Email or Contact Info
+
+For more information, check the operations manual provided by Sygel.
 
 Usage
 =====
 
-Check the operations manual provided by Sygel.
+Once configured, the connector is ready to receive requests.
+
+You can monitor calls going to Ecommerce Connector > Connector Calls.
+Each call has a status: Draft, Done or Error. The default view shows
+Draft and Error records for quick daily monitoring.
+
+You can review mappings between Odoo and ecommerce records going to
+Ecommerce Connector > Ecommerce Mappings. You have menu options for
+Product Variants, Product Templates and Partner
+
+**You can also test this connector using the postman examples provided
+in the postman_examples folder**
+
+For more information, check the operations manual provided by Sygel.
 
 Known issues / Roadmap
 ======================
@@ -53,29 +89,42 @@ Known issues / Roadmap
 Future improvements detected for this module. They should be done in the
 next migrations to upper versions:
 
-- **Create a minimal permission group for the connector bot** Currently,
-  orders are created by a user with maximum permissions (settings/admin
-  group). The module should provide a dedicated group (e.g. *“General
-  Connector Endpoint Runner”*) that depends only on the required groups
-  to create sales orders. Assigning only this group to a user should
-  guarantee the minimum permissions needed to create orders.
+-  **Cleanup and encapsulation of duplicated code**. To do if the module
+   is refactored in upper versions.
 
-- **Refactor to remove the dependency on ``sale_invoice_policy``** The
-  module currently relies on ``sale_invoice_policy`` even though it is
-  not declared in the manifest. If this module is not installed, some
-  order imports fail. An additional module should be created to
-  encapsulate and provide the ``sale_invoice_policy``-related
-  functionality.
+   -  Simplify the error handling pattern. The error list is being
+      continously propagated and checked through all the code.
+      Operations are not aborted if an error is detected.
+   -  Reduce code of main file. Move functions to other files (not
+      necessary orm models)
+   -  Simplify \_get_contact_domain() function
+   -  Simplify \_get_shipping_contact() function
+   -  Simplify \_get_invoice_contact() function
+   -  Move every values dict creation to a function for that. Review
+      functions: \_create_new_product(),
+      \_create_new_product_template(), \_create_payments()
+   -  Move every complex domain creation to a function for that. Review
+      functions: \_find_product()
+   -  Refactor fiscal position and taxes calculation. Documentate its
+      behaviour
+   -  Refactor and simplify mandatory_fields checks. Required fields
+      could be defined in a data structure.
+   -  Refactor and simplify the \_create_response() function
+   -  Refactor and simplify the external_create_sale() function
+   -  Refactor and simplify the external_create_credit_note() function
+   -  Review the record matching methods between systems. Linking local
+      and external delivery.carrier and account.payment.mode by name
+      (translated) would probably need a change
 
-- **Cleanup and encapsulation of duplicated code**
+-  **Improve documentation**
 
-- **Add search views**
+-  **Improve postman collection examples**
 
-- **Add help tooltips to configuration fields**
+-  Add help tooltips to configuration fields
 
-- **Improve documentation**
+-  **Add unit tests**
 
-- **Add unit tests**
+-  Move account_fiscal_position_partner_type dependency to a glue module
 
 Bug Tracker
 ===========
@@ -83,7 +132,7 @@ Bug Tracker
 Bugs are tracked on `GitHub Issues <https://github.com/sygel-technology/sy-general-connector/issues>`_.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
-`feedback <https://github.com/sygel-technology/sy-general-connector/issues/new?body=module:%20ecommerce_connector%0Aversion:%2015.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
+`feedback <https://github.com/sygel-technology/sy-general-connector/issues/new?body=module:%20ecommerce_connector%0Aversion:%2018.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
 
 Do not contact contributors directly about support or help with technical issues.
 
@@ -98,12 +147,16 @@ Authors
 Contributors
 ------------
 
-- Manuel Regidor <manuel.regidor@sygel.es>
-- Valentín Vinagre <valentin.vinagre@sygel.es>
+-  `Sygel <https://www.sygel.es>`__:
+
+   -  Manuel Regidor
+   -  Alberto Martínez
+   -  Valentin Vinagre
+   -  Harald Panten
 
 Maintainers
 -----------
 
-This module is part of the `sygel-technology/sy-general-connector <https://github.com/sygel-technology/sy-general-connector/tree/15.0/ecommerce_connector>`_ project on GitHub.
+This module is part of the `sygel-technology/sy-general-connector <https://github.com/sygel-technology/sy-general-connector/tree/18.0/ecommerce_connector>`_ project on GitHub.
 
 You are welcome to contribute.

@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 import json
+import logging
 from base64 import b64encode
 from datetime import datetime
 
@@ -109,7 +110,8 @@ class EcommerceConnector(models.Model):
             vat = values.get("customer").get("vat")
             vat_domain = [("vat", "=ilike", vat)]
             country_id = self.get_country(
-                values.get("shippingAddress").get("countryCode")
+                values.get("shippingAddress", {}).get("countryCode")
+                or values.get("customer").get("countryCode")
             )
             if country_id:
                 if vat.startswith(country_id.code):
@@ -130,7 +132,7 @@ class EcommerceConnector(models.Model):
             else:
                 name = values.get("customer").get("firstname")
                 if values.get("customer").get("lastname"):
-                    name = "%s %s" % (name, values.get("customer").get("lastname"))
+                    name = f"{name} {values.get('customer').get('lastname')}"
             domain = [
                 ("parent_id", "=", False),
                 ("name", "=ilike", name),
@@ -368,10 +370,10 @@ class EcommerceConnector(models.Model):
         """
         fiscal_position_id = False
         if country.code.upper() == "ES":
-            fiscal_position_id = self.env.ref("l10n_es.%s_fp_nacional" % company.id)
+            fiscal_position_id = self.env.ref(f"account.{company.id}_fp_nacional")
         elif country.code.upper() == "FR":
             fiscal_position_id = self.env.ref(
-                "l10n_fr.%s_fiscal_position_template_domestic" % company.id
+                f"account.{company.id}_fiscal_position_template_domestic"
             )
         return fiscal_position_id
 
@@ -383,10 +385,10 @@ class EcommerceConnector(models.Model):
         """
         fiscal_position_id = False
         if country.code.upper() == "ES":
-            fiscal_position_id = self.env.ref("l10n_es.%s_fp_intra" % company.id)
+            fiscal_position_id = self.env.ref(f"account.{company.id}_fp_intra")
         elif country.code.upper() == "FR":
             fiscal_position_id = self.env.ref(
-                "l10n_fr.%s_fiscal_position_template_intraeub2b" % company.id
+                f"account.{company.id}_fiscal_position_template_intraeub2b"
             )
         return fiscal_position_id
 
@@ -398,10 +400,10 @@ class EcommerceConnector(models.Model):
         """
         fiscal_position_id = False
         if country.code.upper() == "ES":
-            fiscal_position_id = self.env.ref("l10n_es.%s_fp_extra" % company.id)
+            fiscal_position_id = self.env.ref(f"account.{company.id}_fp_extra")
         elif country.code.upper() == "FR":
             fiscal_position_id = self.env.ref(
-                "l10n_fr.%s_fiscal_position_template_import_export" % company.id
+                f"account.{company.id}_fiscal_position_template_import_export"
             )
         return fiscal_position_id
 
@@ -429,7 +431,7 @@ class EcommerceConnector(models.Model):
         fiscal_position_id = False
         national_fp = self._get_national_fiscal_position(country, company)
         europe_group = self.env.ref("base.europe").country_ids - country
-        # In case l10n_eu_oss module is installed
+        # In case l10n_eu_oss_oca module is installed
         if (
             hasattr(self.env["account.fiscal.position"], "oss_oca")
             and tax_rate != 0.0
@@ -444,6 +446,7 @@ class EcommerceConnector(models.Model):
                 ],
                 limit=1,
             )
+            logging.error(f"JIJI: {fiscal_position_id}")
         elif tax_rate != 0.0 and delivery_address.country_id == company.country_id:
             fiscal_position_id = national_fp
         # This is because of the UK for now
@@ -471,9 +474,10 @@ class EcommerceConnector(models.Model):
             and (tax_rate in self._get_national_tax_rates(country))
         ):
             fiscal_position_id = national_fp
+        logging.error(fiscal_position_id)
         return fiscal_position_id
 
-    def _get_order_line(self, fiscal_position, line, ecommerce_connection):
+    def _get_order_line_vals(self, fiscal_position, line, ecommerce_connection):
         """Returns a dictionary with values for a new order line
 
         :param fiscal_position: account.fiscal.position record with the
@@ -500,7 +504,7 @@ class EcommerceConnector(models.Model):
             values["name"] = line.get("description")
         return values
 
-    def _get_shipment_line(self, fiscal_position, shipment, company):
+    def _get_shipment_line_vals(self, fiscal_position, shipment, company):
         """Returns a dictionary with values for a new order line,
             containing shipping info
 
@@ -541,7 +545,7 @@ class EcommerceConnector(models.Model):
                 (
                     0,
                     0,
-                    self._get_order_line(
+                    self._get_order_line_vals(
                         fiscal_position_id, line, ecommerce_connection
                     ),
                 )
@@ -552,14 +556,16 @@ class EcommerceConnector(models.Model):
                     (
                         0,
                         0,
-                        self._get_shipment_line(fiscal_position_id, shipment, company),
+                        self._get_shipment_line_vals(
+                            fiscal_position_id, shipment, company
+                        ),
                     )
                 )
 
         return order_lines
 
-    def _get_credit_note_line(self, line, ecommerce_connection, credit_note):
-        """Returns a dictionary with values of all the lines of a new credit note
+    def _get_credit_note_line_vals(self, line, ecommerce_connection, credit_note):
+        """Returns a dictionary with values of a new credit note line
 
         :param line: dictionary with the credit note line info
         :param ecommerce_connection: record of ecommerce.connection
@@ -590,7 +596,9 @@ class EcommerceConnector(models.Model):
                 (
                     0,
                     0,
-                    self._get_credit_note_line(line, ecommerce_connection, credit_note),
+                    self._get_credit_note_line_vals(
+                        line, ecommerce_connection, credit_note
+                    ),
                 )
             )
         return credit_note_lines
@@ -990,7 +998,7 @@ class EcommerceConnector(models.Model):
                 if not payment_mode_id:
                     errors = self._write_errors(
                         errors,
-                        "%s payment mode is not in the system." % payment.get("method"),
+                        f"{payment.get('method')} payment mode is not in the system.",
                     )
                 elif (
                     payment_mode_id.bank_account_link != "fixed"
@@ -998,8 +1006,8 @@ class EcommerceConnector(models.Model):
                 ):
                     errors = self._write_errors(
                         errors,
-                        "%s payment mode needs to be associated to one journal."
-                        % payment.get("method"),
+                        f"{payment.get('method')} payment mode "
+                        "needs to be associated to one journal.",
                     )
         return errors
 
@@ -1016,8 +1024,8 @@ class EcommerceConnector(models.Model):
                 ):
                     errors = self._write_errors(
                         errors,
-                        "%s shipment method is not in the system."
-                        % shipment.get("method"),
+                        f"{shipment.get('method')} shipment method "
+                        "is not in the system.",
                     )
         return errors
 
@@ -1216,8 +1224,8 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                f"Total in {checked_value_name} ({value_odoo}) does not match the value "
-                f"sent with the call ({value_ecommerce}) {err_extra_info}.",
+                f"Total in {checked_value_name} ({value_odoo}) does not match the value"
+                f" sent with the call ({value_ecommerce}) {err_extra_info}.",
             )
         return errors
 
@@ -1349,7 +1357,7 @@ class EcommerceConnector(models.Model):
                 if not payment:
                     errors = self._write_errors(
                         errors,
-                        "Payment with ID %s could not be found." % payment.get("id"),
+                        f"Payment with ID {payment.get('id')} could not be found.",
                     )
                 elif payment_id:
                     errors = self._check_currencies_equal(
@@ -1365,7 +1373,7 @@ class EcommerceConnector(models.Model):
         if errors:
             errors = self._write_errors(
                 errors,
-                "PAYMENTS WERE DELETED AND INVOICE %s SENT TO DRAFT STATE" % move.name,
+                f"PAYMENTS WERE DELETED AND INVOICE {move.name} SENT TO DRAFT STATE",
             )
         return errors
 
@@ -1379,23 +1387,17 @@ class EcommerceConnector(models.Model):
             errors = self._write_errors(errors, "Company is missing.")
         if not values.get("origin"):
             errors = self._write_errors(errors, "Origin is missing.")
-        if not values.get("return_type") not in ["total", "partial"]:
+        if values.get("returnType") not in ["total", "partial"]:
             errors = self._write_errors(errors, "Return type is missing or incorrect.")
-        if not values.get("invoice_id"):
+        if not values.get("invoiceId"):
             errors = self._write_errors(errors, "Invoice ID is missing.")
         if values.get("return_type") == "partial" and not values.get("lines"):
             errors = self._write_errors(errors, "Lines are missing.")
-        if not values.get("total"):
-            errors = self._write_errors(errors, "Total is missing.")
-        if not values.get("totalCompany"):
-            errors = self._write_errors(errors, "Total company is missing.")
         if values.get("return_type") == "partial":
             if any(
                 not line.get("productId")
                 or not line.get("quantity")
                 or not line.get("unitPrice")
-                or not line.get("unitPriceCompany")
-                or not line.get("unitPriceCompany")
                 for line in values.get("lines")
             ):
                 errors = self._write_errors(
@@ -1412,6 +1414,7 @@ class EcommerceConnector(models.Model):
         :param values: dictionary with the values to be checked
         """
         errors = self._check_company(errors, values)
+        errors = self._check_mandatory_fields_credit_note(errors, values)
         return errors
 
     def _check_credit_lines(self, errors, invoice_id, lines, ecommerce_connection):
@@ -1545,7 +1548,7 @@ class EcommerceConnector(models.Model):
         """
         name = values.get("billingAddress").get("firstname")
         if values.get("billingAddress").get("lastname"):
-            name = "%s %s" % (name, values.get("billingAddress").get("lastname"))
+            name = f"{name} {values.get('billingAddress').get('lastname')}"
         country_id = self.get_country(values.get("billingAddress").get("countryCode"))
         province_id = self.get_province(
             country_id, values.get("billingAddress").get("provinceCode")
@@ -1571,7 +1574,7 @@ class EcommerceConnector(models.Model):
         """
         name = values.get("shippingAddress").get("firstname")
         if values.get("shippingAddress").get("lastname"):
-            name = "%s %s" % (name, values.get("shippingAddress").get("lastname"))
+            name = f"{name} {values.get('shippingAddress').get('lastname')}"
         country_id = self.get_country(values.get("shippingAddress").get("countryCode"))
         province_id = self.get_province(
             country_id, values.get("shippingAddress").get("provinceCode")
@@ -1625,7 +1628,7 @@ class EcommerceConnector(models.Model):
         else:
             name = values.get("customer").get("firstname")
             if values.get("customer").get("lastname"):
-                name = "%s %s" % (name, values.get("customer").get("lastname"))
+                name = f"{name} {values.get('customer').get('lastname')}"
         commercial_company_name = (
             values.get("customer").get("comercial_name")
             if values.get("customer").get("typeClient") == "business"
@@ -1867,29 +1870,35 @@ class EcommerceConnector(models.Model):
         :param country: res.country record
         :param company: res.company record of the current company
         """
+        logging.error(f"_get_tax_by_country({rate}, {country}, {company})")
         tax_id = False
         if country.code.upper() == "ES":
             if rate == 21.00:
                 tax_id = self.env.ref(
-                    "l10n_es.%s_account_tax_template_s_iva21b" % company.id
+                    f"account.{company.id}_account_tax_template_s_iva21b"
                 )
             elif rate == 10.00:
                 tax_id = self.env.ref(
-                    "l10n_es.%s_account_tax_template_s_iva10b" % company.id
+                    f"account.{company.id}_account_tax_template_s_iva10b"
                 )
             elif rate == 4.00:
                 tax_id = self.env.ref(
-                    "l10n_es.%s_account_tax_template_s_iva4b" % company.id
+                    f"account.{company.id}_account_tax_template_s_iva4b"
                 )
         elif country.code.upper() == "FR":
             if rate == 20.00:
-                tax_id = self.env.ref("l10n_fr.%s_tva_normale" % company.id)
+                tax_id = self.env.ref(f"account.{company.id}_tva_normale")
             elif rate == 10.00:
-                tax_id = self.env.ref("l10n_fr.%s_tva_intermediaire" % company.id)
+                tax_id = self.env.ref(f"account.{company.id}_tva_intermediaire")
             elif rate == 5.50:
-                tax_id = self.env.ref("l10n_fr.%s_tva_reduite" % company.id)
+                tax_id = self.env.ref(f"account.{company.id}_tva_reduite")
             elif rate == 2.10:
-                tax_id = self.env.ref("l10n_fr.%s_tva_super_reduite" % company.id)
+                tax_id = self.env.ref(f"account.{company.id}_tva_super_reduite")
+        if not tax_id:
+            # Code that uses this function assumes it always return a tax.
+            # If the (old) code avobe did not found the tax,
+            # well use the default tax for the company
+            tax_id = company.account_sale_tax_id
         return tax_id
 
     def _find_product(self, line, ecommerce_connection):
@@ -1939,11 +1948,13 @@ class EcommerceConnector(models.Model):
         tax_id = self._get_tax_by_country(
             line.get("productTaxCompany"), company.country_id, company
         )
-
+        logging.error([(6, 0, [tax_id.id])])
         vals = {
             "name": line.get("productName"),
             "taxes_id": [(6, 0, [tax_id.id])],
-            "type": line.get("productType"),
+            "type": line.get("productType").replace("product", "consu"),
+            "is_storable": line.get("productStorable")
+            or line.get("productType") == "product",
             "invoice_policy": "order",
         }
         if ecommerce_connection.create_products_single_company:
@@ -1992,8 +2003,8 @@ class EcommerceConnector(models.Model):
                 ):
                     errors = self._write_errors(
                         errors,
-                        "Product with barcode %s already in the system."
-                        % line.get("productBarcode"),
+                        f"Product with barcode {line.get('productBarcode')} "
+                        "already in the system.",
                     )
                 if not errors:
                     product_template_id = False
@@ -2125,12 +2136,12 @@ class EcommerceConnector(models.Model):
         if not errors and not payment_errors:
             file = False
             if move_id:
-                file = self.env.ref("account.account_invoices")._render_qweb_pdf(
-                    move_id.id
+                file = self.env["ir.actions.report"]._render_qweb_pdf(
+                    "account.account_invoices", res_ids=move_id.id
                 )[0]
             else:
-                file = self.env.ref("sale.action_report_saleorder")._render_qweb_pdf(
-                    order_id.id
+                file = self.env["ir.actions.report"]._render_qweb_pdf(
+                    "sale.action_report_saleorder", res_ids=order_id.id
                 )[0]
             file = base64_bytes = b64encode(file)
             file = base64_bytes.decode("utf-8")
@@ -2146,7 +2157,7 @@ class EcommerceConnector(models.Model):
                 "result": {
                     "sale_id": order_id.id,
                     "invoice_id": move_id.id if move_id else False,
-                    "ecommerce_id": values.get("id"),
+                    "ecommerce_id": values.get("ecommerceId"),
                     "pdf": file,
                 },
             }
@@ -2157,7 +2168,7 @@ class EcommerceConnector(models.Model):
             vals = {
                 "status": "error",
                 "error_message": payment_errors,
-                "ecommerce_id": values.get("id"),
+                "ecommerce_id": values.get("ecommerceId"),
             }
             connector_call.write(
                 {
@@ -2171,7 +2182,7 @@ class EcommerceConnector(models.Model):
             vals = {
                 "status": "error",
                 "error_message": errors,
-                "ecommerce_id": values.get("id"),
+                "ecommerce_id": values.get("ecommerceId"),
             }
             connector_call.write(
                 {
@@ -2224,8 +2235,6 @@ class EcommerceConnector(models.Model):
                 ],
                 limit=1,
             )
-        if not pricelist_id:
-            pricelist_id = self.env.ref("product.list0")
         errors = self._create_products(
             errors, values.get("lines"), ecommerce_connection
         )
@@ -2243,7 +2252,7 @@ class EcommerceConnector(models.Model):
         vals.update(
             {
                 "ecommerce_id": values.get("id"),
-                "pricelist_id": pricelist_id.id,
+                "pricelist_id": pricelist_id.id if pricelist_id else False,
                 "partner_id": partner_id.id,
                 "partner_shipping_id": shipping_address_id.id,
                 "partner_invoice_id": invoice_address_id.id,
@@ -2257,8 +2266,6 @@ class EcommerceConnector(models.Model):
                 "ecommerce_connector_id": ecommerce_connection.id,
             }
         )
-        if ecommerce_connection.invoice_policy:
-            vals["invoice_policy"] = ecommerce_connection.invoice_policy
         if values.get("payments"):
             payment_mode_id = self.env["account.payment.mode"].search(
                 [
@@ -2338,7 +2345,7 @@ class EcommerceConnector(models.Model):
         if order_vals.get("status") == "error":
             return order_vals
         order_id = self.env["sale.order"].with_company(company).create(order_vals)
-        order_id.flush()
+        order_id.flush_recordset()
         order_id.action_confirm()
         if ecommerce_connection_id.create_invoice:
             moves = order_id.with_company(company)._create_invoices()
@@ -2355,7 +2362,8 @@ class EcommerceConnector(models.Model):
             )
             if errors:
                 moves.unlink()
-                order_id.action_cancel()
+                order_id._action_cancel()
+                logging.error(f"ESTADO PRE ERROR: {order_id.state}, {order_id.locked}")
                 order_id.unlink()
             elif ecommerce_connection_id.validate_invoice:
                 moves.with_company(company).action_post()
@@ -2375,9 +2383,9 @@ class EcommerceConnector(models.Model):
                 values, order_id, errors, ecommerce_connection_id
             )
             if errors:
-                order_id.action_cancel()
+                order_id._action_cancel()
+                logging.error("ESTADO PRE ERROR: {order_id.state}")
                 order_id.unlink()
-
         return self._create_response(
             connector_call,
             values,
@@ -2428,11 +2436,6 @@ class EcommerceConnector(models.Model):
                     if not invoice_id:
                         errors = self._write_errors(errors, "Credit note not found.")
                     if not errors:
-                        refund_method = (
-                            "cancel"
-                            if values.get("returnType") == "total"
-                            else "refund"
-                        )
                         refund_invoice_wizard = (
                             self.env["account.move.reversal"]
                             .with_context(
@@ -2444,7 +2447,6 @@ class EcommerceConnector(models.Model):
                             )
                             .create(
                                 {
-                                    "refund_method": refund_method,
                                     "reason": "refund",
                                     "journal_id": invoice_id.journal_id.id,
                                 }
@@ -2454,26 +2456,15 @@ class EcommerceConnector(models.Model):
                         credit_note = self.env["account.move"].browse(
                             credit_note_action.get("res_id")
                         )
-                        if refund_method == "refund" and not errors:
-                            errors = self._check_credit_lines(
-                                errors,
-                                invoice_id,
-                                values.get("lines"),
-                                ecommerce_connection_id,
+                        if values.get("returnType") == "partial":
+                            errors = self._external_create_partial_credit_note(
+                                credit_note, values, ecommerce_connection_id
                             )
-                            if not errors:
-                                credit_note.write({"invoice_line_ids": False})
-                                invoice_lines = self._get_credit_note_lines(
-                                    values.get("lines"),
-                                    ecommerce_connection_id,
-                                    credit_note,
-                                )
-                                credit_note.write({"invoice_line_ids": invoice_lines})
-                                credit_note.action_post()
                         if not errors:
-                            file = self.env.ref(
-                                "account.account_invoices"
-                            )._render_qweb_pdf(credit_note.id)[0]
+                            credit_note.action_post()
+                            file = self.env["ir.actions.report"]._render_qweb_pdf(
+                                "account.account_invoices", res_ids=credit_note.id
+                            )[0]
                             base64_bytes = b64encode(file)
                             file = base64_bytes.decode("utf-8")
                             vals = {
@@ -2488,3 +2479,31 @@ class EcommerceConnector(models.Model):
                 credit_note.unlink()
             vals = {"status": "error", "error_message": errors}
         return vals
+
+    def _external_create_partial_credit_note(
+        self, credit_note, values, ecommerce_connection_id
+    ):
+        """Takes a full credit note and converts it in a partial credit note
+
+        :param credit_note: account.move record with the credit note to edit
+        :param values: dictionaty with the info sent by the ecommerce
+        """
+        errors = ""
+        credit_note.ensure_one()
+        credit_note.write({"invoice_line_ids": False})
+        invoice_lines = self._get_credit_note_lines(
+            values.get("lines"),
+            ecommerce_connection_id,
+            credit_note,
+        )
+        credit_note.write({"invoice_line_ids": invoice_lines})
+        if (
+            credit_note.reversed_entry_id
+            and credit_note.reversed_entry_id.amount_total < credit_note.amount_total
+        ):
+            errors = (
+                "You can not reverse more amount "
+                f"({credit_note.reversed_entry_id.amount_total}) "
+                f"than the original invoice ({credit_note.amount_total})"
+            )
+        return errors

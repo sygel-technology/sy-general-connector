@@ -26,7 +26,10 @@ class EcommerceConnection(models.Model):
         required=True,
         help="Language used for writing operation in multilanguage fields.",
     )
-    use_odoo_so_sequence = fields.Boolean(string="Use Odoo Sales Seq.")
+    use_odoo_so_sequence = fields.Boolean(
+        string="Use Odoo Sales Seq.",
+        help="Use Odoo internal numbering instead of the ecommerce order reference.",
+    )
     duplicate_invoice_name = fields.Boolean(
         string="Duplicate Name in Invoice Address",
         help="If checked, the Invoice Address name is set in case it equals "
@@ -39,8 +42,9 @@ class EcommerceConnection(models.Model):
         required=True,
     )
     contact_search_partner_type = fields.Boolean(
+        string="Contact Search Company Type",
         help="If checked, the partner type (person or company) will be "
-        "used in the customer's search domain."
+        "used in the customer's search domain.",
     )
     contact_search_rule = fields.Selection(
         [
@@ -76,12 +80,15 @@ class EcommerceConnection(models.Model):
     create_contacts_single_company = fields.Boolean(
         string="Create Contacts for Single Company"
     )
-    check_customer_vat = fields.Boolean()
-    create_invoice = fields.Boolean()
-    invoice_policy = fields.Selection(
-        [("order", "Ordered quantities"), ("delivery", "Delivered quantities")],
+    check_customer_vat = fields.Boolean(
+        help="Warn if the customer has no VAT number set."
     )
-    validate_invoice = fields.Boolean()
+    create_invoice = fields.Boolean(
+        help="Automatically create an invoice when the order is imported."
+    )
+    validate_invoice = fields.Boolean(
+        help="Automatically validate the invoice after creation."
+    )
     update_contacts = fields.Boolean(
         help="If checked, the searched contacts will be updated "
         "with the remaining partner data of the request"

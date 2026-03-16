@@ -9,15 +9,13 @@
         <field name="model">res.company</field>
         <field name="inherit_id" ref="base.view_company_form" />
         <field name="arch" type="xml">
-            <notebook position="inside">
-                <page string="Stock Check Connector" name="stock_check_connector">
+            <page name="ecommerce_connector" position="inside">
+                <group>
                     <group>
-                        <group>
-                            <field name="accept_stock_check_connector" />
-                        </group>
+                        <field name="accept_stock_check_connector" />
                     </group>
-                </page>
-            </notebook>
+                </group>
+            </page>
         </field>
     </record>
 </odoo>

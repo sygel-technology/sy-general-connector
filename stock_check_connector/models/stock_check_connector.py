@@ -29,7 +29,7 @@ class StockCheckConnector(models.Model):
         """
         domain = [("product_id", "=", product.id)]
         lot_vals = []
-        lot_ids = self.env["stock.production.lot"].search(domain)
+        lot_ids = self.env["stock.lot"].search(domain)
         # Se realiza primero una búsqueda general y luego un filtro
         # porque el campo product_qty no está almacenado
         if lot_serial_search == "available":
@@ -61,7 +61,7 @@ class StockCheckConnector(models.Model):
         """
         ecommerce_id = False
         ecommerce_product = product.ecommerce_product_ids.filtered(
-            lambda a: a.ecommerce_id == ecommerce_connection
+            lambda a: a.ecommerce_connection_id == ecommerce_connection
         )
         if ecommerce_product:
             ecommerce_id = ecommerce_product.ecommerce_id
@@ -226,9 +226,8 @@ class StockCheckConnector(models.Model):
                     if not product:
                         errors = self._write_errors(
                             errors,
-                            "Product with search key {} and value {} could not be found.".format(
-                                p.get("searchKey"), p.get("searchVal")
-                            ),
+                            f"Product with search key {p.get('searchKey')} "
+                            f"and value {p.get('searchVal')} could not be found.",
                         )
                         break
                     else:

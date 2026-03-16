@@ -7,4 +7,4 @@ from odoo import fields, models
 class ResCompany(models.Model):
     _inherit = "res.company"
 
-    accept_stock_check_connector = fields.Boolean(string="Accept Stock Check Connector")
+    accept_stock_check_connector = fields.Boolean()

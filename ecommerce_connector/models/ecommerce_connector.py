@@ -116,7 +116,7 @@ class EcommerceConnector(models.Model):
                     vat_with_code = vat
                     vat = vat[len(country_id.code) :]
                 else:
-                    vat_with_code = "{}{}".format(country_id.code, vat)
+                    vat_with_code = f"{country_id.code}{vat}"
                 vat_domain = [
                     "|",
                     ("vat", "=ilike", vat),
@@ -1216,13 +1216,8 @@ class EcommerceConnector(models.Model):
         ):
             errors = self._write_errors(
                 errors,
-                "Total in {value_name} ({value_odoo}) does not match the value "
-                "sent with the call ({value_ecommerce}) {extra_info}.".format(
-                    value_name=checked_value_name,
-                    value_odoo=value_odoo,
-                    value_ecommerce=value_ecommerce,
-                    extra_info=err_extra_info,
-                ),
+                f"Total in {checked_value_name} ({value_odoo}) does not match the value "
+                f"sent with the call ({value_ecommerce}) {err_extra_info}.",
             )
         return errors
 
@@ -1326,7 +1321,7 @@ class EcommerceConnector(models.Model):
                     compare_val,
                     float(line.get("unitPrice")),
                     ecommerce_connection_id,
-                    checked_value_name="sales currency {}".format(compare_field),
+                    checked_value_name=f"sales currency {compare_field}",
                     err_extra_info="in shipping line with ID {}".format(line.get("id")),
                 )
         return errors

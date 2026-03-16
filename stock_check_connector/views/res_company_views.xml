@@ -13,7 +13,7 @@
                 <page string="Stock Check Connector" name="stock_check_connector">
                     <group>
                         <group>
-                            <field name="accept_stock_check_connector"/>
+                            <field name="accept_stock_check_connector" />
                         </group>
                     </group>
                 </page>

@@ -21,7 +21,7 @@ class ProductManagementConnector(models.Model):
         :param new_error: string with new error to be added
         :param mode: 'rp' for receivable/payable or 'other'
         """
-        return "%s%s\n" % (errors, new_error)
+        return f"{errors}{new_error}\n"
 
     def _check_create_mandatory_fields(
         self, errors, values, company, ecommerce_connection
@@ -218,7 +218,7 @@ class ProductManagementConnector(models.Model):
             vals = {"status": "OK", "result": "product created/updated"}
             connector_call.write({"state": "done"})
         connector_call.write({"message_out": json.dumps(vals)})
-        return json.dumps(vals)
+        return vals
 
     @api.model
     def external_create_product(self, values):

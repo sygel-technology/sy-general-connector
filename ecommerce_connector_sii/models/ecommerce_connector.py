@@ -9,7 +9,7 @@ class EcommerceConnector(models.Model):
 
     def _get_new_partner_vals(self, values, ecommerce_connection):
         vals = super()._get_new_partner_vals(values, ecommerce_connection)
-        vals["sii_simplified_invoice"] = (
+        vals["aeat_simplified_invoice"] = (
             True if not values.get("customer").get("vat") else False
         )
         return vals

@@ -1,3 +1,3 @@
-* Automatically unmark invoices as Simplified for B2C customers (typeClient = individual)
-  when using the connector to set the VAT number of a contact previously created
-  without one.
+To use this module, you need to:
+
+- Send a sale to the external connector that has a new B2C customer (typeClient = individual)

@@ -17,7 +17,7 @@ Ecommerce Connector - SII
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-sygel--technology%2Fsy--general--connector-lightgray.png?logo=github
-    :target: https://github.com/sygel-technology/sy-general-connector/tree/15.0/ecommerce_connector_sii
+    :target: https://github.com/sygel-technology/sy-general-connector/tree/18.0/ecommerce_connector_sii
     :alt: sygel-technology/sy-general-connector
 
 |badge1| |badge2| |badge3|
@@ -28,9 +28,9 @@ installed.
 
 The current version of the module supports the following operation:
 
-- Automatically mark invoices as Simplified for B2C customers
-  (typeClient = individual) without VAT when a new contact is created
-  through the connector.
+-  Automatically mark invoices as Simplified for B2C customers
+   (typeClient = individual) without VAT when a new contact is created
+   through the connector.
 
 Notes
 ~~~~~
@@ -48,26 +48,13 @@ overridden by this module.
 .. contents::
    :local:
 
-Installation
-============
-
-To install this module, you need to:
-
-- Only install
-
-Configuration
-=============
-
-To configure this module, you need to:
-
-- No configuration needed.
-
 Usage
 =====
 
-- Automatically unmark invoices as Simplified for B2C customers
-  (typeClient = individual) when using the connector to set the VAT
-  number of a contact previously created without one.
+To use this module, you need to:
+
+-  Send a sale to the external connector that has a new B2C customer
+   (typeClient = individual)
 
 Bug Tracker
 ===========
@@ -75,7 +62,7 @@ Bug Tracker
 Bugs are tracked on `GitHub Issues <https://github.com/sygel-technology/sy-general-connector/issues>`_.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
-`feedback <https://github.com/sygel-technology/sy-general-connector/issues/new?body=module:%20ecommerce_connector_sii%0Aversion:%2015.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
+`feedback <https://github.com/sygel-technology/sy-general-connector/issues/new?body=module:%20ecommerce_connector_sii%0Aversion:%2018.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
 
 Do not contact contributors directly about support or help with technical issues.
 
@@ -90,15 +77,15 @@ Authors
 Contributors
 ------------
 
-- `Sygel <https://www.sygel.es>`__:
+-  `Sygel <https://www.sygel.es>`__:
 
-  - Manuel Regidor
-  - Valentín Vinagre
-  - Harald Panten
+   -  Manuel Regidor
+   -  Valentín Vinagre
+   -  Harald Panten
 
 Maintainers
 -----------
 
-This module is part of the `sygel-technology/sy-general-connector <https://github.com/sygel-technology/sy-general-connector/tree/15.0/ecommerce_connector_sii>`_ project on GitHub.
+This module is part of the `sygel-technology/sy-general-connector <https://github.com/sygel-technology/sy-general-connector/tree/18.0/ecommerce_connector_sii>`_ project on GitHub.
 
 You are welcome to contribute.

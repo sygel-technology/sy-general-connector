@@ -4,7 +4,7 @@
 {
     "name": "Ecommerce Connector - Sale Order Type",
     "summary": "Set a default sale type for ecommerce sale orders.",
-    "version": "15.0.1.0.0",
+    "version": "18.0.1.0.0",
     "category": "Ecommerce",
     "author": "Sygel",
     "website": "https://github.com/sygel-technology/sy-general-connector",

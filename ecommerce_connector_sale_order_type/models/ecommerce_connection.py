@@ -8,5 +8,7 @@ class EcommerceConnection(models.Model):
     _inherit = "ecommerce.connection"
 
     sale_order_type_id = fields.Many2one(
-        comodel_name="sale.order.type", name="Sale Order Type"
+        comodel_name="sale.order.type",
+        name="Sale Order Type",
+        domain="['|',('company_id', '=', company_id), ('company_id', '=', False)]",
     )

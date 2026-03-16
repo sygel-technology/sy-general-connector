@@ -12,7 +12,7 @@
             <page name="ecommerce_connector" position="inside">
                 <group>
                     <group>
-                        <field name="accept_product_management_connector"/>
+                        <field name="accept_product_management_connector" />
                     </group>
                 </group>
             </page>

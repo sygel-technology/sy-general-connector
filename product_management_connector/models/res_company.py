@@ -5,7 +5,7 @@ from odoo import fields, models
 
 
 class ResCompany(models.Model):
-    _inherit = 'res.company'
+    _inherit = "res.company"
 
     accept_product_management_connector = fields.Boolean(
         string="Accept Product Management Connector"

@@ -7,7 +7,9 @@ from odoo import fields, models
 class EcommerConnectorCall(models.Model):
     _inherit = "ecommerce.connector.call"
 
-    operation = fields.Selection(selection_add=[
-        ('create_product', 'Create Product'),
-        ('update_product', 'Update Product')
-    ])
+    operation = fields.Selection(
+        selection_add=[
+            ("create_product", "Create Product"),
+            ("update_product", "Update Product"),
+        ]
+    )

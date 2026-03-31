@@ -1,0 +1,89 @@
+{
+  "info": {
+    "_postman_id": "fed033e1-0019-4ace-9399-babcb34d300b",
+    "name": "ecommerce_stock_check_connector_v18",
+    "description": "Plantilla con ejemplos de llamadas estándar del módulo stock_check_connector de Sygel en v18\n\nPara utilizarla:\n\n- Importar la plantilla en tu workspace personal\n    \n- Revisar las variables generales, y configurarlas con las del odoo a conectarte\n- Configurar los ids de los productos a consultar desde las propias llamadas",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44869513"
+  },
+  "item": [
+    {
+      "name": "External Stock Check",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"stock.check.connector\",\n            \"external_stock_check\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"lotSerialSearch\": \"all\",  // [\"all\", \"available\"]\n                \"lotSerialDate\": \"2000-01-01\",  // en caso de que la opción anterior sea all, mostrar lotes/números de serie sin unidades a patir de esa fecha\n                \"products\":[  // (si no se indica, se buscan todos los productos)\n                    {\n                        \"searchKey\": \"ecommerceId\",  //  [\"odooId\", \"ecommerceId\", \"sku\", \"barcode\"] (método de búsqueda del producto),\n                        \"searchVal\": \"100\"  \n                    },\n                    {\n                        \"searchKey\": \"sku\",\n                        \"searchVal\": \"100_sku\"\n                    },\n                    {\n                        \"searchKey\": \"barcode\",\n                        \"searchVal\": \"100_barcode\"\n                    }\n                ]\n            }\n        ]\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/jsonrpc",
+          "host": ["{{base_url}}"],
+          "path": ["jsonrpc"]
+        },
+        "description": "Llamada para consultar el stock de los productos"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:18069/",
+      "type": "string"
+    },
+    {
+      "key": "db_name",
+      "value": "devel-conector",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "8",
+      "type": "string"
+    },
+    {
+      "key": "user_passwd",
+      "value": "ecommerce_connector",
+      "type": "string"
+    },
+    {
+      "key": "ecommerce_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "origin",
+      "value": "woocommerce",
+      "type": "string"
+    }
+  ]
+}

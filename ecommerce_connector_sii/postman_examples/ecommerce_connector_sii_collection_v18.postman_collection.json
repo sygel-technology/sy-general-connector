@@ -1,0 +1,94 @@
+{
+  "info": {
+    "_postman_id": "88d91825-65e2-41b6-ae0b-1e3c8c39a583",
+    "name": "ecommerce_connector_sii_collection_v18",
+    "description": "Plantilla con ejemplos de llamadas estándar del módulo ecommerce_connector_sii de Sygel en v18\n\nPara utilizarla:\n\n- Importar la plantilla en tu workspace personal\n    \n- Revisar las variables generales, y configurarlas con las del odoo a conectarte\n- Ir subiendo el current value de la variable sale_id según vas creando pedidos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44869513"
+  },
+  "item": [
+    {
+      "name": "External Create Sale - SII",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_sale\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"id\": {{sale_id}},\n                \"number\": \"WEB-{{sale_id}}\",\n                \"customer\": {\n                    \"id\": 1010,\n                    \"firstname\": \"Pepito\",\n                    \"lastname\": \"Pérez\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Mayor, 1\",\n                    \"street2\": \"\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08001\",\n                    \"vat\": false,\n                    \"email\": \"pepito@example.com\",\n                    \"typeClient\": \"individual\",\n                    \"languageCode\": \"es_ES\",\n                    \"phone\": \"+34930000000\",\n                    \"mobile\": \"+34600000000\"\n                },\n                \"shippingAddress\": {\n                    \"id\": 7002,\n                    \"firstname\": \"Pepito\",\n                    \"lastname\": \"Pérez\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Envío, 2\",\n                    \"street2\": \"\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08002\",\n                    \"email\": \"pepito@example.com\",\n                    \"phone\": \"+34930000001\",\n                    \"mobile\": \"+34600000001\"\n                },\n                \"billingAddress\": {\n                    \"id\": 8002,\n                    \"firstname\": \"Pepito\",\n                    \"lastname\": \"Pérez\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Facturación, 3\",\n                    \"street2\": \"\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08003\",\n                    \"email\": \"pepito@example.com\",\n                    \"phone\": \"+34930000002\",\n                    \"mobile\": \"+34600000002\"\n                },\n                \"payments\": [\n                {\n                    \"id\": 9001,\n                    \"method\": \"Direct bank transfer\",  // It needs to be created in Odoo with same name\n                    \"unitPrice\": 121.00,\n                    \"unitPriceCompany\": 121.00\n                }\n                ],\n                \"shipments\": [\n                {\n                    \"id\": 9101,\n                    \"method\": \"Envío España\",  // It needs to be created in Odoo with same name\n                    \"unitPrice\": 6.05,\n                    \"unitPriceCompany\": 6.05\n                }\n                ],\n                \"currencyCode\": \"EUR\",\n                \"exchangeRate\": 1.000000000000,\n                \"notes\": \"Observaciones del pedido\",\n                \"lines\": [\n                {\n                    \"variants\": {\n                        \"color\": \"blue\",\n                        \"size\": \"M\"\n                    },\n                    \"productName\": \"Camiseta técnica\",\n                    \"productTemplateId\": 2001,\n                    \"productId\": 2101,\n                    \"productSku\": \"TSHIRT-BLU-M\",\n                    \"productBarcode\": \"8430000000001\",\n                    \"productTaxCompany\": 21.00,\n                    \"productDescription\": \"Camiseta técnica azul\",\n                    \"productType\": \"product\",\n                    \"description\": \"Camiseta técnica azul talla M\",\n                    \"id\": 1,\n                    \"quantity\": 2.00,\n                    \"unitPrice\": 50.00,\n                    \"unitPriceCompany\": 50.00,\n                    \"total\": 121.00,\n                    \"totalCompany\": 121.00,\n                    \"subtotal\": 100.00,\n                    \"subtotalCompany\": 100.00,\n                    \"taxes\": [\n                    {\n                        \"taxId\": 21,\n                        \"taxName\": \"IVA 21% (Bienes)\",\n                        \"taxRate\": 21.00\n                    }\n                    ],\n                    \"cost\": 20.00,\n                    \"costCompany\": 20.00,\n                    \"discount\": 0.00\n                }\n                ],\n                \"total\": 128.32,\n                \"totalCompany\": 128.32,\n                \"taxTotal\": 22.27,\n                \"taxTotalCompany\": 22.27,\n                \"shippingTotal\": 7.32,\n                \"shippingTotalCompany\": 7.32,\n                \"dateOrder\": \"2025-08-26\"\n            }\n        ]\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/jsonrpc",
+          "host": ["{{base_url}}"],
+          "path": ["jsonrpc"]
+        },
+        "description": "LLamada para crear una venta, pero utilizando un cliente individual sin NIF. Necesario para probar el módulo ecommerce_connector_sii"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "sale_id",
+      "value": "1000",
+      "type": "string"
+    },
+    {
+      "key": "base_url",
+      "value": "http://localhost:18069/",
+      "type": "string"
+    },
+    {
+      "key": "db_name",
+      "value": "devel-conector",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "8",
+      "type": "string"
+    },
+    {
+      "key": "user_passwd",
+      "value": "ecommerce_connector",
+      "type": "string"
+    },
+    {
+      "key": "ecommerce_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "origin",
+      "value": "woocommerce",
+      "type": "string"
+    }
+  ]
+}

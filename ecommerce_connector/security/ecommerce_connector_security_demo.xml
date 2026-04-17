@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 Alberto Martínez <alberto.martinez@sygel.es>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <!-- User for tests -->
+    <record model="res.partner" id="partner_ecommerce_connector">
+        <field name="name">Ecommerce Connector</field>
+        <field name="email">ecommerce_connector@yourcompany.example.com</field>
+    </record>
+    <record
+        id="user_ecommerce_connector"
+        model="res.users"
+        context="{'no_reset_password': True}"
+    >
+        <field name="name">Ecommerce Connector</field>
+        <field name="login">ecommerce_connector</field>
+        <field name="password">ecommerce_connector</field>
+        <field name="company_id" ref="base.main_company" />
+        <field name="company_ids" model="res.company" eval="obj().search([])" />
+        <field
+            name="groups_id"
+            eval="[Command.set([ref('ecommerce_connector.group_call_runner')])]"
+        />
+        <field name="partner_id" ref="partner_ecommerce_connector" />
+    </record>
+</odoo>

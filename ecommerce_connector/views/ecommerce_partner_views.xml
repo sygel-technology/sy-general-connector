@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2022 Manuel Regidor <manuel.regidor@sygel.es>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="ecommerce_partner_list" model="ir.ui.view">
+        <field name="name">ecommerce.partner.list</field>
+        <field name="model">ecommerce.partner</field>
+        <field name="type">list</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="ecommerce_connection_id" options="{'no_create': True}" />
+                <field name="partner_id" options="{'no_create': True}" />
+                <field name="ecommerce_id" />
+            </list>
+        </field>
+    </record>
+    <record id="ecommerce_partner_search" model="ir.ui.view">
+        <field name="name">ecommerce.partner.search</field>
+        <field name="model">ecommerce.partner</field>
+        <field name="arch" type="xml">
+            <search>
+                <field
+                    name="ecommerce_id"
+                    filter_domain="[('ecommerce_id', '=', self)]"
+                />
+                <field name="partner_id" />
+                <field name="ecommerce_connection_id" />
+            </search>
+        </field>
+    </record>
+    <record id="ecommerce_partner_action" model="ir.actions.act_window">
+        <field name="name">Ecommerce Partner</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">ecommerce.partner</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="ecommerce_partner_list" />
+    </record>
+</odoo>

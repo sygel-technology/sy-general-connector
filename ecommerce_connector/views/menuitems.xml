@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2022 Manuel Regidor <manuel.regidor@sygel.es>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <menuitem
+        id="ecommerce_connector_root"
+        name="Ecommerce Connector"
+        web_icon="ecommerce_connector,static/description/ecommerce_connector_icon.png"
+    />
+    <menuitem
+        id="ecommerce_connector_call_menu"
+        parent="ecommerce_connector_root"
+        action="ecommerce_connector_call_action"
+        name="Connector Calls"
+        sequence="10"
+    />
+    <menuitem
+        id="ecommerce_connection_menu"
+        parent="ecommerce_connector_root"
+        action="ecommerce_connection_action"
+        name="Connection"
+        sequence="15"
+    />
+    <menuitem
+        id="ecommerce_mappings_menu"
+        parent="ecommerce_connector_root"
+        name="Ecommerce Mappings"
+        sequence="20"
+    />
+    <menuitem
+        id="ecommerce_product_variant_menu"
+        parent="ecommerce_mappings_menu"
+        action="ecommerce_product_product_action"
+        name="Product Variant"
+    />
+    <menuitem
+        id="ecommerce_product_template_menu"
+        parent="ecommerce_mappings_menu"
+        action="ecommerce_product_template_action"
+        name="Product Template"
+    />
+    <menuitem
+        id="ecommerce_partner_menu"
+        parent="ecommerce_mappings_menu"
+        action="ecommerce_partner_action"
+        name="Partner"
+    />
+</odoo>

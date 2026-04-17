@@ -4,7 +4,7 @@
 {
     "name": "Ecommerce Connector - Sale Invoice Policy",
     "summary": "Set a default invoice policy for ecommerce sale orders.",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Ecommerce",
     "author": "Sygel",
     "website": "https://github.com/sygel-technology/sy-general-connector",

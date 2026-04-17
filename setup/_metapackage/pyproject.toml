@@ -1,8 +1,9 @@
 [project]
 name = "odoo-addons-sygel-technology-sy-general-connector"
-version = "18.0.20260417.4"
+version = "18.0.20260417.5"
 dependencies = [
     "odoo-addon-ecommerce_connector==18.0.*",
+    "odoo-addon-ecommerce_connector_sale_invoice_policy==18.0.*",
     "odoo-addon-ecommerce_connector_sale_order_type==18.0.*",
     "odoo-addon-ecommerce_connector_sii==18.0.*",
     "odoo-addon-product_management_connector==18.0.*",

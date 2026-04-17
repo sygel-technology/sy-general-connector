@@ -22,6 +22,7 @@ Available addons
 addon | version | maintainers | summary
 --- | --- | --- | ---
 [ecommerce_connector](ecommerce_connector/) | 18.0.1.0.0 |  | General E-Commerce Integration
+[ecommerce_connector_sale_order_type](ecommerce_connector_sale_order_type/) | 18.0.1.0.0 |  | Set a default sale type for ecommerce sale orders.
 
 [//]: # (end addons)
 

@@ -24,6 +24,7 @@ addon | version | maintainers | summary
 [ecommerce_connector](ecommerce_connector/) | 18.0.1.0.0 |  | General E-Commerce Integration
 [ecommerce_connector_sale_order_type](ecommerce_connector_sale_order_type/) | 18.0.1.0.0 |  | Set a default sale type for ecommerce sale orders.
 [ecommerce_connector_sii](ecommerce_connector_sii/) | 18.0.1.0.0 |  | SII values and procedures for ecommerce sale orders.
+[stock_check_connector](stock_check_connector/) | 18.0.1.0.0 |  | Stock Check Connector
 
 [//]: # (end addons)
 

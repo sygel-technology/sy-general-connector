@@ -1,9 +1,10 @@
 [project]
 name = "odoo-addons-sygel-technology-sy-general-connector"
-version = "18.0.20260417.1"
+version = "18.0.20260417.2"
 dependencies = [
     "odoo-addon-ecommerce_connector==18.0.*",
     "odoo-addon-ecommerce_connector_sale_order_type==18.0.*",
+    "odoo-addon-ecommerce_connector_sii==18.0.*",
 ]
 classifiers=[
     "Programming Language :: Python",

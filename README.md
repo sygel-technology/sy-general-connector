@@ -16,6 +16,13 @@ Odoo generic connector
 <!-- prettier-ignore-start -->
 
 [//]: # (addons)
+
+Available addons
+----------------
+addon | version | maintainers | summary
+--- | --- | --- | ---
+[ecommerce_connector](ecommerce_connector/) | 18.0.1.0.0 |  | General E-Commerce Integration
+
 [//]: # (end addons)
 
 <!-- prettier-ignore-end -->

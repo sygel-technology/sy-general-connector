@@ -1,3 +1,6 @@
+- Since V18, the sale_invoice_policy functionality ahs been moved to the ecommerce_connector_sale_invoice_policy module. If you are migrating from older versions, you should also install this module.
+
+
 Future improvements detected for this module. They should be done in the next migrations to upper versions:
 
 - **Cleanup and encapsulation of duplicated code**. To do if the module is refactored in upper versions.

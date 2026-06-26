@@ -1237,32 +1237,33 @@ class EcommerceConnector(models.Model):
         :param move: account.move record with the newly created invoice
         :param errors: string with the current errors
         """
-        errors = self._check_currencies_equal(
-            errors,
-            move.amount_total,
-            float(values.get("total")),
-            ecommerce_connection_id,
-        )
-        errors = self._check_currencies_equal(
-            errors,
-            move.amount_total_signed,
-            float(values.get("totalCompany")),
-            ecommerce_connection_id,
-            checked_value_name="company currency",
-        )
-        errors = self._check_currencies_equal(
-            errors,
-            move.amount_tax,
-            float(values.get("taxTotal")),
-            ecommerce_connection_id,
-        )
-        errors = self._check_currencies_equal(
-            errors,
-            move.amount_tax_signed,
-            float(values.get("taxTotalCompany")),
-            ecommerce_connection_id,
-            checked_value_name="company currency",
-        )
+        if not ecommerce_connection_id.skip_validation_checks:
+            errors = self._check_currencies_equal(
+                errors,
+                move.amount_total,
+                float(values.get("total")),
+                ecommerce_connection_id,
+            )
+            errors = self._check_currencies_equal(
+                errors,
+                move.amount_total_signed,
+                float(values.get("totalCompany")),
+                ecommerce_connection_id,
+                checked_value_name="company currency",
+            )
+            errors = self._check_currencies_equal(
+                errors,
+                move.amount_tax,
+                float(values.get("taxTotal")),
+                ecommerce_connection_id,
+            )
+            errors = self._check_currencies_equal(
+                errors,
+                move.amount_tax_signed,
+                float(values.get("taxTotalCompany")),
+                ecommerce_connection_id,
+                checked_value_name="company currency",
+            )
         return errors
 
     def _check_invoice_lines(self, values, move, errors, ecommerce_connection_id):
@@ -1273,33 +1274,34 @@ class EcommerceConnector(models.Model):
         :param move: account.move record with the newly created invoice
         :param errors: string with the current errors
         """
-        for line in values.get("lines"):
-            invoice_line = move.invoice_line_ids.filtered(
-                lambda a, line=line: a.ecommerce_id == int(line.get("id"))
-            )
-            error = False
-            if len(invoice_line) != 1:
-                error = True
-                errors = self._write_errors(
-                    errors,
-                    "A unique invoice line with ID {} could not be found."
-                    " Found {} lines".format(line.get("id"), len(invoice_line)),
+        if not ecommerce_connection_id.skip_validation_checks:
+            for line in values.get("lines"):
+                invoice_line = move.invoice_line_ids.filtered(
+                    lambda a, line=line: a.ecommerce_id == int(line.get("id"))
                 )
-            if not error:
-                errors = self._check_currencies_equal(
-                    errors,
-                    invoice_line.price_total,
-                    float(line.get("total")),
-                    ecommerce_connection_id,
-                    err_extra_info="in line with ID {}".format(line.get("id")),
-                )
-                errors = self._check_currencies_equal(
-                    errors,
-                    invoice_line.price_subtotal,
-                    float(line.get("subtotal")),
-                    ecommerce_connection_id,
-                    err_extra_info="in line with ID {}".format(line.get("id")),
-                )
+                error = False
+                if len(invoice_line) != 1:
+                    error = True
+                    errors = self._write_errors(
+                        errors,
+                        "A unique invoice line with ID {} could not be found."
+                        " Found {} lines".format(line.get("id"), len(invoice_line)),
+                    )
+                if not error:
+                    errors = self._check_currencies_equal(
+                        errors,
+                        invoice_line.price_total,
+                        float(line.get("total")),
+                        ecommerce_connection_id,
+                        err_extra_info="in line with ID {}".format(line.get("id")),
+                    )
+                    errors = self._check_currencies_equal(
+                        errors,
+                        invoice_line.price_subtotal,
+                        float(line.get("subtotal")),
+                        ecommerce_connection_id,
+                        err_extra_info="in line with ID {}".format(line.get("id")),
+                    )
         return errors
 
     def _check_shipping_lines(self, values, move, errors, ecommerce_connection_id):
@@ -1310,7 +1312,10 @@ class EcommerceConnector(models.Model):
         :param move: account.move record with the newly created invoice
         :param errors: string with the current errors
         """
-        if values.get("shipments"):
+        if (
+            values.get("shipments")
+            and not ecommerce_connection_id.skip_validation_checks
+        ):
             for line in values.get("shipments"):
                 shipping_line = move.invoice_line_ids.filtered(
                     lambda a, line=line: a.ecommerce_shipping_id == int(line.get("id"))
@@ -1343,7 +1348,7 @@ class EcommerceConnector(models.Model):
         :param errors: string with the current errors
         """
         payments = values.get("payments")
-        if payments:
+        if payments and not ecommerce_connection_id.skip_validation_checks:
             payment_ids = move._get_reconciled_payments()
             if len(payments) != len(payment_ids):
                 errors = self._write_errors(
@@ -1453,7 +1458,10 @@ class EcommerceConnector(models.Model):
         :param move: account.move record with the newly created invoice
         :param errors: string with the current errors
         """
-        if values.get("shipments"):
+        if (
+            values.get("shipments")
+            and not ecommerce_connection_id.skip_validation_checks
+        ):
             for line in values.get("shipments"):
                 shipping_line = move.invoice_line_ids.filtered(
                     lambda a, line=line: a.ecommerce_shipping_id == int(line.get("id"))
@@ -1475,18 +1483,19 @@ class EcommerceConnector(models.Model):
         :param move: sale.order record with the newly created invoice
         :param errors: string with the current errors
         """
-        errors = self._check_currencies_equal(
-            errors,
-            order.amount_total,
-            float(values.get("total")),
-            ecommerce_connection_id,
-        )
-        errors = self._check_currencies_equal(
-            errors,
-            order.amount_tax,
-            float(values.get("taxTotal")),
-            ecommerce_connection_id,
-        )
+        if not ecommerce_connection_id.skip_validation_checks:
+            errors = self._check_currencies_equal(
+                errors,
+                order.amount_total,
+                float(values.get("total")),
+                ecommerce_connection_id,
+            )
+            errors = self._check_currencies_equal(
+                errors,
+                order.amount_tax,
+                float(values.get("taxTotal")),
+                ecommerce_connection_id,
+            )
         return errors
 
     def _check_sale_lines(self, values, order, errors, ecommerce_connection_id):
@@ -1497,24 +1506,25 @@ class EcommerceConnector(models.Model):
         :param order: sale.order record with the newly created sale order
         :param errors: string with the current errors
         """
-        for line in values.get("lines"):
-            sale_order_line = order.order_line.filtered(
-                lambda a, line=line: a.ecommerce_id == int(line.get("id"))
-            )
-            errors = self._check_currencies_equal(
-                errors,
-                sale_order_line.price_total,
-                float(line.get("total")),
-                ecommerce_connection_id,
-                err_extra_info="in line with ID {}".format(line.get("id")),
-            )
-            errors = self._check_currencies_equal(
-                errors,
-                sale_order_line.price_subtotal,
-                float(line.get("subtotal")),
-                ecommerce_connection_id,
-                err_extra_info="in line with ID {}".format(line.get("id")),
-            )
+        if not ecommerce_connection_id.skip_validation_checks:
+            for line in values.get("lines"):
+                sale_order_line = order.order_line.filtered(
+                    lambda a, line=line: a.ecommerce_id == int(line.get("id"))
+                )
+                errors = self._check_currencies_equal(
+                    errors,
+                    sale_order_line.price_total,
+                    float(line.get("total")),
+                    ecommerce_connection_id,
+                    err_extra_info="in line with ID {}".format(line.get("id")),
+                )
+                errors = self._check_currencies_equal(
+                    errors,
+                    sale_order_line.price_subtotal,
+                    float(line.get("subtotal")),
+                    ecommerce_connection_id,
+                    err_extra_info="in line with ID {}".format(line.get("id")),
+                )
         return errors
 
     def _check_sale_shipping_lines(
@@ -1527,7 +1537,10 @@ class EcommerceConnector(models.Model):
         :param move: account.move record with the newly created invoice
         :param errors: string with the current errors
         """
-        if values.get("shipments"):
+        if (
+            values.get("shipments")
+            and not ecommerce_connection_id.skip_validation_checks
+        ):
             for line in values.get("shipments"):
                 shipping_line = order.order_line.filtered(
                     lambda a, line=line: a.ecommerce_shipping_id == int(line.get("id"))

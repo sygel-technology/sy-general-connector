@@ -105,6 +105,11 @@ class EcommerceConnection(models.Model):
         "between Odoo and the e-commerce prices. "
         "The higher the precision, the more restrictive the check.",
     )
+    skip_validation_checks = fields.Boolean(
+        help="If this is set, "
+        "currency restrictions won't be applied to the created sales. "
+        "THIS SHOULD NOT BE ACTIVE IN PRODUCTION"
+    )
 
     _sql_constraints = [
         (

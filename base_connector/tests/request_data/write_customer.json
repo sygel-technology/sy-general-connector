@@ -1,0 +1,23 @@
+{
+  "ecommerceId": 1,
+  "companyId": 1,
+  "origin": "website",
+  "customer": {
+    "id": 1001,
+    "firstname": "Pedro",
+    "lastname": "Martínez",
+    "comercialName": "Pedro M S.L.",
+    "countryCode": "ES",
+    "provinceCode": "B",
+    "street": "C/ Las Ramblas",
+    "street2": "Calle Mayor, 2",
+    "city": "Barcelona",
+    "postcode": "08002",
+    "vat": "22297786E",
+    "email": "pedro@example.com",
+    "typeClient": "business",
+    "languageCode": "es_ES",
+    "phone": "+549060335546",
+    "mobile": "+34666000000"
+  }
+}

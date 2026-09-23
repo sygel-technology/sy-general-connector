@@ -1,0 +1,17 @@
+{
+  "ecommerceId": 1,
+  "companyId": 1,
+  "origin": "website",
+  "customer": {
+    "id": 1001,
+    "typeClient": "business",
+    "email": "pedro@example.com",
+    "vat": "22297786E",
+    "countryCode": "ES",
+    "comercialName": "Pedro M S.L.",
+    "firstname": "Pedro",
+    "lastname": "Martínez",
+    "phone": "+549060335546",
+    "mobile": "+34666000000"
+  }
+}

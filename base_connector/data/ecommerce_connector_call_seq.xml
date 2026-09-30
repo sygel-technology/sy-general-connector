@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2021 Sygel - Manuel Regidor
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo noupdate="1">
+    <record id="ecommerce_connector_call" model="ir.sequence">
+        <field name="name">Ecommerce Connector Call Sequence</field>
+        <field name="code">ecommerce.connector.call</field>
+        <field eval="8" name="padding" />
+        <field name="prefix">Call/</field>
+    </record>
+</odoo>

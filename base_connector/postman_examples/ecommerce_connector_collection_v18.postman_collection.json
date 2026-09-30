@@ -1,0 +1,344 @@
+{
+  "info": {
+    "_postman_id": "6583bf6d-7ecf-4d36-90ce-92c1313eeb2b",
+    "name": "ecommerce_connector_collection_v18",
+    "description": "Plantilla con ejemplos de llamadas estándar del módulo ecommerce_connector de Sygel en v18\n\nPara utilizarla:\n\n- Importar la plantilla en tu workspace personal\n    \n- Revisar las variables generales, y configurarlas con las del odoo a conectarte\n- Ir subiendo el current value de la variable sale_id según vas creando pedidos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44869513"
+  },
+  "item": [
+    {
+      "name": "External Create Sale",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_sale\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"id\": {{sale_id}},\n                \"number\": \"WEB-{{sale_id}}\",\n                \"customer\": {\n                    \"id\": 1001,\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Pérez\",\n                    \"comercialName\": \"Pedro Pérez S.L.\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Mayor, 1\",\n                    \"street2\": \"\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08001\",\n                    \"vat\": \"22792697L\",\n                    \"email\": \"pedro@example.com\",\n                    \"typeClient\": \"individual\",\n                    \"languageCode\": \"es_ES\",\n                    \"phone\": \"+34930000000\",\n                    \"mobile\": \"+34600000000\"\n                },\n                \"shippingAddress\": {\n                    \"id\": 7001,\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Pérez\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Envío, 2\",\n                    \"street2\": \"\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08002\",\n                    \"email\": \"logistica@example.com\",\n                    \"phone\": \"+34930000001\",\n                    \"mobile\": \"+34600000001\"\n                },\n                \"billingAddress\": {\n                    \"id\": 8001,\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Pérez\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Facturación, 3\",\n                    \"street2\": \"\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08003\",\n                    \"email\": \"facturas@example.com\",\n                    \"phone\": \"+34930000002\",\n                    \"mobile\": \"+34600000002\"\n                },\n                \"payments\": [\n                {\n                    \"id\": 9001,\n                    \"method\": \"Direct bank transfer\",  // It needs to be created in Odoo with same name\n                    \"unitPrice\": 121.00,\n                    \"unitPriceCompany\": 121.00\n                }\n                ],\n                \"shipments\": [\n                {\n                    \"id\": 9101,\n                    \"method\": \"Envío España\",  // It needs to be created in Odoo with same name\n                    \"unitPrice\": 6.05,\n                    \"unitPriceCompany\": 6.05\n                }\n                ],\n                \"currencyCode\": \"EUR\",\n                \"exchangeRate\": 1.000000000000,\n                \"notes\": \"Observaciones del pedido\",\n                \"lines\": [\n                {\n                    \"variants\": {\n                        \"color\": \"blue\",\n                        \"size\": \"M\"\n                    },\n                    \"productName\": \"Camiseta técnica\",\n                    \"productTemplateId\": 2001,\n                    \"productId\": 2101,\n                    \"productSku\": \"TSHIRT-BLU-M\",\n                    \"productBarcode\": \"8430000000000\",\n                    \"productTaxCompany\": 21.00,\n                    \"productDescription\": \"Camiseta técnica azul\",\n                    \"productType\": \"product\",\n                    \"description\": \"Camiseta técnica azul talla M\",\n                    \"id\": 1,\n                    \"quantity\": 2.00,\n                    \"unitPrice\": 50.00,\n                    \"unitPriceCompany\": 50.00,\n                    \"total\": 121.00,\n                    \"totalCompany\": 121.00,\n                    \"subtotal\": 100.00,\n                    \"subtotalCompany\": 100.00,\n                    \"taxes\": [\n                    {\n                        \"taxId\": 21,\n                        \"taxName\": \"IVA 21% (Bienes)\",\n                        \"taxRate\": 21.00\n                    }\n                    ],\n                    \"cost\": 20.00,\n                    \"costCompany\": 20.00,\n                    \"discount\": 0.00\n                }\n                ],\n                \"total\": 128.32,\n                \"totalCompany\": 128.32,\n                \"taxTotal\": 22.27,\n                \"taxTotalCompany\": 22.27,\n                \"shippingTotal\": 7.32,\n                \"shippingTotalCompany\": 7.32,\n                \"dateOrder\": \"2025-08-26\"\n            }\n        ]\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/jsonrpc",
+          "host": ["{{base_url}}"],
+          "path": ["jsonrpc"]
+        },
+        "description": "LLamada para crear una venta, y el resto de registros asociados necesarios: cliente, productos, etc.\n\nSe ofrecen varios ejemplos para probar la llamada con diferentes clientes, productos, precios, descuentos, paises, monedas..."
+      },
+      "response": [
+        {
+          "name": "External Create Sale - Basic 1",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_sale\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"id\": {{sale_id}},\n                \"number\": \"WEB-{{sale_id}}\",\n                \"customer\": {\n                    \"id\": 1001,\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Pérez\",\n                    \"comercialName\": \"Pedro Pérez S.L.\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Mayor, 1\",\n                    \"street2\": \"\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08001\",\n                    \"vat\": \"22792697L\",\n                    \"email\": \"pedro@example.com\",\n                    \"typeClient\": \"individual\",\n                    \"languageCode\": \"es_ES\",\n                    \"phone\": \"+34930000000\",\n                    \"mobile\": \"+34600000000\"\n                },\n                \"shippingAddress\": {\n                    \"id\": 7001,\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Pérez\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Envío, 2\",\n                    \"street2\": \"\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08002\",\n                    \"email\": \"logistica@example.com\",\n                    \"phone\": \"+34930000001\",\n                    \"mobile\": \"+34600000001\"\n                },\n                \"billingAddress\": {\n                    \"id\": 8001,\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Pérez\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Facturación, 3\",\n                    \"street2\": \"\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08003\",\n                    \"email\": \"facturas@example.com\",\n                    \"phone\": \"+34930000002\",\n                    \"mobile\": \"+34600000002\"\n                },\n                \"payments\": [\n                {\n                    \"id\": 9001,\n                    \"method\": \"Direct bank transfer\",  // It needs to be created in Odoo with same name\n                    \"unitPrice\": 121.00,\n                    \"unitPriceCompany\": 121.00\n                }\n                ],\n                \"shipments\": [\n                {\n                    \"id\": 9101,\n                    \"method\": \"Envío España\",  // It needs to be created in Odoo with same name\n                    \"unitPrice\": 6.05,\n                    \"unitPriceCompany\": 6.05\n                }\n                ],\n                \"currencyCode\": \"EUR\",\n                \"exchangeRate\": 1.000000000000,\n                \"notes\": \"Observaciones del pedido\",\n                \"lines\": [\n                {\n                    \"variants\": {\n                        \"color\": \"blue\",\n                        \"size\": \"M\"\n                    },\n                    \"productName\": \"Camiseta técnica\",\n                    \"productTemplateId\": 2001,\n                    \"productId\": 2101,\n                    \"productSku\": \"TSHIRT-BLU-M\",\n                    \"productBarcode\": \"8430000000000\",\n                    \"productTaxCompany\": 21.00,\n                    \"productDescription\": \"Camiseta técnica azul\",\n                    \"productType\": \"product\",\n                    \"description\": \"Camiseta técnica azul talla M\",\n                    \"id\": 1,\n                    \"quantity\": 2.00,\n                    \"unitPrice\": 50.00,\n                    \"unitPriceCompany\": 50.00,\n                    \"total\": 121.00,\n                    \"totalCompany\": 121.00,\n                    \"subtotal\": 100.00,\n                    \"subtotalCompany\": 100.00,\n                    \"taxes\": [\n                    {\n                        \"taxId\": 21,\n                        \"taxName\": \"IVA 21% (Bienes)\",\n                        \"taxRate\": 21.00\n                    }\n                    ],\n                    \"cost\": 20.00,\n                    \"costCompany\": 20.00,\n                    \"discount\": 0.00\n                }\n                ],\n                \"total\": 128.32,\n                \"totalCompany\": 128.32,\n                \"taxTotal\": 22.27,\n                \"taxTotalCompany\": 22.27,\n                \"shippingTotal\": 7.32,\n                \"shippingTotalCompany\": 7.32,\n                \"dateOrder\": \"2025-08-26\"\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/jsonrpc",
+              "host": ["{{base_url}}"],
+              "path": ["jsonrpc"]
+            }
+          },
+          "_postman_previewlanguage": null,
+          "header": null,
+          "cookie": [],
+          "body": null
+        },
+        {
+          "name": "External Create Sale - Basic 2",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_sale\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"id\": {{sale_id}},\n                \"number\": \"WEB-{{sale_id}}\",\n                \"customer\": {\n                    \"id\": \"23223\",\n                    \"firstname\": \"Eduardo\",\n                    \"lastname\": \"Puntos\",\n                    \"comercialName\": \"\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"TF\",\n                    \"street\": \"Calle Kalea\",\n                    \"street2\": \"Calle 2\",\n                    \"city\": \"Icod De Los Vinos\",\n                    \"postcode\": \"38430\",\n                    \"vat\": \"\",\n                    \"email\": \"cliente3.test@test.test\",\n                    \"typeClient\": \"individual\",\n                    \"languageCode\": \"\",\n                    \"phone\": \"+34603164607\",\n                    \"mobile\": \"+34603164607\"\n                },\n                \"shippingAddress\": {\n                    \"id\": \"39941\",\n                    \"firstname\": \"Eduardo\",\n                    \"lastname\": \"Puntos\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"TF\",\n                    \"street\": \"Calle Kalea\",\n                    \"street2\": \"Calle 2\",\n                    \"city\": \"Icod De Los Vinos\",\n                    \"postcode\": \"38430\",\n                    \"email\": \"cliente3.test@test.test\",\n                    \"phone\": \"+34603164607\",\n                    \"mobile\": \"+34603164607\"\n                },\n                \"billingAddress\": {\n                    \"id\": \"39941\",\n                    \"firstname\": \"Eduardo\",\n                    \"lastname\": \"Puntos\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"TF\",\n                    \"street\": \"Calle Kalea\",\n                    \"street2\": \"Calle 2\",\n                    \"city\": \"Icod De Los Vinos\",\n                    \"postcode\": \"38430\",\n                    \"email\": \"cliente3.test@test.test\",\n                    \"phone\": \"+34603164607\",\n                    \"mobile\": \"+34603164607\"\n                },\n                \"payments\": [\n                    {\n                        \"id\": 2124568929,\n                        \"method\": \"Direct bank transfer\",  // It needs to be created in Odoo with same name\n                        \"unitPrice\": \"54.69\",\n                        \"unitPriceCompany\": \"54.69\"\n                    }\n                ],\n                \"shipments\": [\n                    {\n                        \"id\": 8,\n                        \"method\": \"Envío España\",  // It needs to be created in Odoo with same name\n                        \"unitPrice\": \"5.78\",\n                        \"unitPriceCompany\": \"5.78\"\n                    }\n                ],\n                \"currencyCode\": \"EUR\",\n                \"exchangeRate\": 1,\n                \"notes\": \"\",\n                \"lines\": [\n                    {\n                        \"variants\": [],\n                        \"productName\": \"Garlic Budder Feminized Seeds\",\n                        \"productTemplateId\": 1175,\n                        \"productId\": 1177,\n                        \"productSku\": \"SKU-1175\",\n                        \"productBarcode\": \"SKU-1175\",\n                        \"productTaxCompany\": 21,\n                        \"productType\": \"product\",\n                        \"id\": 38013,\n                        \"quantity\": \"1\",\n                        \"unitPrice\": \"43.80\",\n                        \"unitPriceCompany\": \"43.80\",\n                        \"total\": \"47.70\",\n                        \"totalCompany\": \"47.70\",\n                        \"subtotal\": \"39.42\",\n                        \"subtotalCompany\": \"39.42\",\n                        \"taxes\": [\n                            {\n                                \"taxId\": 1,\n                                \"taxName\": \"Tax\",\n                                \"taxRate\": 21\n                            }\n                        ],\n                        \"cost\": \"39.42\",\n                        \"costCompany\": \"39.42\",\n                        \"discount\": \"10.00\"\n                    }\n                ],\n                \"total\": \"54.69\",\n                \"totalCompany\": \"54.69\",\n                \"taxTotal\": \"9.49\",\n                \"taxTotalCompany\": \"9.49\",\n                \"shippingTotal\": \"6.99\",\n                \"shippingTotalCompany\": \"6.99\",\n                \"dateOrder\": \"2026-03-28\"\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/jsonrpc",
+              "host": ["{{base_url}}"],
+              "path": ["jsonrpc"]
+            }
+          },
+          "_postman_previewlanguage": null,
+          "header": null,
+          "cookie": [],
+          "body": null
+        },
+        {
+          "name": "External Create Sale - Basic 3",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_sale\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"id\": {{sale_id}},\n                \"number\": \"WEB-{{sale_id}}\",\n                \"customer\": {\n                    \"id\": 36364,\n                    \"firstname\": \"Pablo\",\n                    \"lastname\": \"Test\",\n                    \"comercialName\": \"COMPRAMOSTUMOTO SLU\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"BU\",\n                    \"street\": \"C/ Test, 1\",\n                    \"street2\": \"C/ Calle\",\n                    \"city\": \"25027976C\",\n                    \"postcode\": \"09318\",\n                    \"vat\": \"16059022p\",\n                    \"email\": \"test3.test@test.test\",\n                    \"typeClient\": \"business\",\n                    \"languageCode\": \"es_ES\",\n                    \"mobile\": \"666777666\"\n                },\n                \"shippingAddress\": {\n                    \"id\": 36364,\n                    \"firstname\": \"Pablo\",\n                    \"lastname\": \"Test\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"BU\",\n                    \"street\": \"C/ Test, 1\",\n                    \"street2\": \"C/ Calle\",\n                    \"city\": \"Fuentelisendo\",\n                    \"postcode\": \"09318\",\n                    \"email\": \"test3.test@test.test\",\n                    \"mobile\": \"666777666\"\n                },\n                \"billingAddress\": {\n                    \"id\": 36364,\n                    \"firstname\": \"Pablo\",\n                    \"lastname\": \"Test\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"BU\",\n                    \"street\": \"C/ Test, 1\",\n                    \"street2\": \"C/ Calle\",\n                    \"city\": \"Fuentelisendo\",\n                    \"postcode\": \"09318\",\n                    \"email\": \"test3.test@test.test\",\n                    \"mobile\": \"666777666\"\n                },\n                \"payments\": [\n                    {\n                        \"id\": 4,\n                        \"method\": \"Direct bank transfer\",\n                        \"unitPrice\": 322.34,\n                        \"unitPriceCompany\": 322.34\n                    }\n                ],\n                \"shipments\": [\n                    {\n                        \"id\": 2,\n                        \"method\": \"Envío España\",\n                        \"unitPrice\": 0,\n                        \"unitPriceCompany\": 0\n                    }\n                ],\n                \"currencyCode\": \"EUR\",\n                \"exchangeRate\": 1,\n                \"notes\": \"\",\n                \"lines\": [\n                    {\n                        \"variants\": {\n                            \"Tipo\": \"2 Valvulas\"\n                        },\n                        \"productName\": \"Reparación motor\",\n                        \"productTemplateId\": 9923,\n                        \"productId\": 15969,\n                        \"productSku\": \"SKU15969\",\n                        \"productBarcode\": \"BARCODE15969\",\n                        \"productTaxCompany\": 21,\n                        \"productDescription\": \"\",\n                        \"productType\": \"service\",\n                        \"id\": 19682,\n                        \"quantity\": 2,\n                        \"unitPrice\": 133.2,\n                        \"unitPriceCompany\": 133.2,\n                        \"total\": 322.34,\n                        \"totalCompany\": 322.34,\n                        \"subtotal\": 266.4,\n                        \"subtotalCompany\": 266.4,\n                        \"taxes\": [\n                            {\n                                \"taxId\": 0,\n                                \"taxName\": \"IVA\",\n                                \"taxRate\": 21\n                            }\n                        ],\n                        \"cost\": 0,\n                        \"costCompany\": 0,\n                        \"discount\": 0\n                    }\n                ],\n                \"total\": 322.34,\n                \"totalCompany\": 322.34,\n                \"taxTotal\": 55.94,\n                \"taxTotalCompany\": 55.94,\n                \"shippingTotal\": 0,\n                \"shippingTotalCompany\": 0,\n                \"dateOrder\": \"2026-03-30\",\n                \"campaign\": \"SEM-12\",\n                \"medium\": \"cpc\",\n                \"source\": \"google\"\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/jsonrpc",
+              "host": ["{{base_url}}"],
+              "path": ["jsonrpc"]
+            }
+          },
+          "_postman_previewlanguage": null,
+          "header": null,
+          "cookie": [],
+          "body": null
+        },
+        {
+          "name": "External Create Sale - USD",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_sale\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"id\": {{sale_id}},\n                \"number\": \"WEB-{{sale_id}}\",\n                \"customer\": {\n                    \"id\": 36364,\n                    \"firstname\": \"Pablo\",\n                    \"lastname\": \"Test\",\n                    \"comercialName\": \"COMPRAMOSTUMOTO SLU\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"BU\",\n                    \"street\": \"C/ Test, 1\",\n                    \"street2\": \"C/ Calle\",\n                    \"city\": \"25027976C\",\n                    \"postcode\": \"09318\",\n                    \"vat\": \"16059022p\",\n                    \"email\": \"test3.test@test.test\",\n                    \"typeClient\": \"business\",\n                    \"languageCode\": \"es_ES\",\n                    \"mobile\": \"666777666\"\n                },\n                \"shippingAddress\": {\n                    \"id\": 36364,\n                    \"firstname\": \"Pablo\",\n                    \"lastname\": \"Test\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"BU\",\n                    \"street\": \"C/ Test, 1\",\n                    \"street2\": \"C/ Calle\",\n                    \"city\": \"Fuentelisendo\",\n                    \"postcode\": \"09318\",\n                    \"email\": \"test3.test@test.test\",\n                    \"mobile\": \"666777666\"\n                },\n                \"billingAddress\": {\n                    \"id\": 36364,\n                    \"firstname\": \"Pablo\",\n                    \"lastname\": \"Test\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"BU\",\n                    \"street\": \"C/ Test, 1\",\n                    \"street2\": \"C/ Calle\",\n                    \"city\": \"Fuentelisendo\",\n                    \"postcode\": \"09318\",\n                    \"email\": \"test3.test@test.test\",\n                    \"mobile\": \"666777666\"\n                },\n                \"payments\": [\n                    {\n                        \"id\": 4,\n                        \"method\": \"Direct bank transfer\",\n                        \"unitPrice\": 322.34,\n                        \"unitPriceCompany\": 644.68\n                    }\n                ],\n                \"shipments\": [\n                    {\n                        \"id\": 2,\n                        \"method\": \"Envío España\",\n                        \"unitPrice\": 0,\n                        \"unitPriceCompany\": 0\n                    }\n                ],\n                \"currencyCode\": \"USD\",\n                \"exchangeRate\": 2,  // Lets assume, that the USD value its the double\n                \"notes\": \"\",\n                \"lines\": [\n                    {\n                        \"variants\": {\n                            \"Tama\\u00f1o\": \"Bote 20 L\"\n                        },\n                        \"productName\": \"Imperlux Termic Indoor\\u00ae - 20 litros\",\n                        \"productTemplateId\": 9913,\n                        \"productId\": 15939,\n                        \"productSku\": \"SKU15939\",\n                        \"productBarcode\": \"BARCODE15939\",\n                        \"productTaxCompany\": 21,\n                        \"productDescription\": \"\",\n                        \"productType\": \"product\",\n                        \"id\": 19682,\n                        \"quantity\": 2,\n                        \"unitPrice\": 133.2,\n                        \"unitPriceCompany\": 266.4,\n                        \"total\": 322.34,\n                        \"totalCompany\": 644.68,\n                        \"subtotal\": 266.4,\n                        \"subtotalCompany\": 532.8,\n                        \"taxes\": [\n                            {\n                                \"taxId\": 0,\n                                \"taxName\": \"IVA\",\n                                \"taxRate\": 21\n                            }\n                        ],\n                        \"cost\": 0,\n                        \"costCompany\": 0,\n                        \"discount\": 0\n                    }\n                ],\n                \"total\": 322.34,\n                \"totalCompany\": 644.68,  // In our coin (EUR), the amount will be higher\n                \"taxTotal\": 55.94,\n                \"taxTotalCompany\": 111.88,\n                \"shippingTotal\": 0,\n                \"shippingTotalCompany\": 0,\n                \"dateOrder\": \"2026-03-30\",\n                \"campaign\": \"SEM-12\",\n                \"medium\": \"cpc\",\n                \"source\": \"google\"\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/jsonrpc",
+              "host": ["{{base_url}}"],
+              "path": ["jsonrpc"]
+            }
+          },
+          "_postman_previewlanguage": null,
+          "header": null,
+          "cookie": [],
+          "body": null
+        },
+        {
+          "name": "External Create Sale - Extracomunirary (OSS)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_sale\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"id\": {{sale_id}},\n                \"number\": \"WEB-{{sale_id}}\",\n                \"customer\": {\n                    \"id\": \"{{sale_id}}\",\n                    \"firstname\": \"Joaquin\",\n                    \"lastname\": \"Wolswagen\",\n                    \"comercialName\": \"\",\n                    \"countryCode\": \"DE\",\n                    \"provinceCode\": \"DE-SN\",\n                    \"street\": \"Calle Straße 17\",\n                    \"street2\": \"Straße Straße\",\n                    \"city\": \"Leipzig\",\n                    \"postcode\": \"04249\",\n                    \"vat\": \"\",\n                    \"email\": \"joaquin.test@test.test\",\n                    \"typeClient\": \"individual\",\n                    \"languageCode\": \"\",\n                    \"phone\": \"15202258745\",\n                    \"mobile\": \"15202258745\"\n                },\n                \"shippingAddress\": {\n                    \"id\": \"39924\",\n                    \"firstname\": \"Joaquin\",\n                    \"lastname\": \"Wolswagen\",\n                    \"countryCode\": \"DE\",\n                    \"provinceCode\": \"DE-SN\",\n                    \"street\": \"Calle Straße 17\",\n                    \"street2\": \"Straße Straße\",\n                    \"city\": \"Leipzig\",\n                    \"postcode\": \"04249\",\n                    \"email\": \"joaquin.test@test.test\",\n                    \"phone\": \"\",\n                    \"mobile\": \"\"\n                },\n                \"billingAddress\": {\n                    \"id\": \"39924\",\n                    \"firstname\": \"Joaquin\",\n                    \"lastname\": \"Wolswagen\",\n                    \"countryCode\": \"DE\",\n                    \"provinceCode\": \"DE-SN\",\n                    \"street\": \"Calle Straße 17\",\n                    \"street2\": \"Straße Straße\",\n                    \"city\": \"Leipzig\",\n                    \"postcode\": \"04249\",\n                    \"email\": \"joaquin.test@test.test\",\n                    \"phone\": \"15202258745\",\n                    \"mobile\": \"15202258745\"\n                },\n                \"payments\": [\n                    {\n                        \"id\": 9001,\n                        \"method\": \"Direct bank transfer\",  // It needs to be created in Odoo with same name\n                        \"unitPrice\": \"73.00\",\n                        \"unitPriceCompany\": \"73.00\"\n                    }\n                ],\n                \"shipments\": [\n                    {\n                        \"id\": 9101,\n                        \"method\": \"Envío España\",  // It needs to be created in Odoo with same name\n                        \"unitPrice\": \"8.40\",\n                        \"unitPriceCompany\": \"8.40\"\n                    }\n                ],\n                \"currencyCode\": \"EUR\",\n                \"exchangeRate\": 1,\n                \"notes\": \"\",\n                \"lines\": [\n                    {\n                        \"variants\": [],\n                        \"productName\": \"Jelly Donutz Autoflower Seeds\",\n                        \"productTemplateId\": 1394,\n                        \"productId\": 1395,\n                        \"productSku\": \"SKU-1394\",\n                        \"productBarcode\": \"SKU-1394\",\n                        \"productTaxCompany\": 19,\n                        \"productType\": \"product\",\n                        \"id\": 37930,\n                        \"quantity\": \"1\",\n                        \"unitPrice\": \"29.41\",\n                        \"unitPriceCompany\": \"29.41\",\n                        \"total\": \"31.50\",\n                        \"totalCompany\": \"31.50\",\n                        \"subtotal\": \"26.47\",\n                        \"subtotalCompany\": \"26.47\",\n                        \"taxes\": [\n                            {\n                                \"taxId\": 5,\n                                \"taxName\": \"Tax\",\n                                \"taxRate\": 19\n                            }\n                        ],\n                        \"cost\": \"26.47\",\n                        \"costCompany\": \"26.47\",\n                        \"discount\": \"10.00\"\n                    },\n                    {\n                        \"variants\": [],\n                        \"productName\": \"Pineapple Muffin Autoflower Seeds\",\n                        \"productTemplateId\": 1414,\n                        \"productId\": 1415,\n                        \"productSku\": \"SKU-1414\",\n                        \"productBarcode\": \"SKU-1414\",\n                        \"productTaxCompany\": 19,\n                        \"productType\": \"product\",\n                        \"id\": 37931,\n                        \"quantity\": \"1\",\n                        \"unitPrice\": \"29.41\",\n                        \"unitPriceCompany\": \"29.41\",\n                        \"total\": \"31.50\",\n                        \"totalCompany\": \"31.50\",\n                        \"subtotal\": \"26.47\",\n                        \"subtotalCompany\": \"26.47\",\n                        \"taxes\": [\n                            {\n                                \"taxId\": 5,\n                                \"taxName\": \"Tax\",\n                                \"taxRate\": 19\n                            }\n                        ],\n                        \"cost\": \"26.47\",\n                        \"costCompany\": \"26.47\",\n                        \"discount\": \"10.00\"\n                    }\n                ],\n                \"total\": \"73.00\",\n                \"totalCompany\": \"73.00\",\n                \"taxTotal\": \"11.66\",\n                \"taxTotalCompany\": \"11.66\",\n                \"shippingTotal\": \"10.00\",\n                \"shippingTotalCompany\": \"10.00\",\n                \"dateOrder\": \"2026-03-27\"\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/jsonrpc",
+              "host": ["{{base_url}}"],
+              "path": ["jsonrpc"]
+            }
+          },
+          "_postman_previewlanguage": null,
+          "header": null,
+          "cookie": [],
+          "body": null
+        }
+      ]
+    },
+    {
+      "name": "External Update Partner",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_update_customer\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"customer\": {\n                    \"id\": 1001,\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Martínez\",\n                    \"comercialName\": \"Pedro M S.L.\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Las Ramblas\",\n                    \"street2\": \"Calle Mayor, 2\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08002\",\n                    \"vat\": \"22297786E\",\n                    \"email\": \"pedro@example.com\",\n                    \"typeClient\": \"business\",\n                    \"languageCode\": \"es_ES\",\n                    \"phone\": \"+549060335546\",\n                    \"mobile\": \"+34666000000\"\n                }\n            }\n        ]\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/jsonrpc",
+          "host": ["{{base_url}}"],
+          "path": ["jsonrpc"]
+        },
+        "description": "LLamada para actualizar los datos de un cliente previamente creado"
+      },
+      "response": []
+    },
+    {
+      "name": "External Create Credit Note",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_credit_note\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"invoiceId\": {{sale_id}},\n                \"returnType\": \"total\"  // Now invoices can only be reversed with total method\n            }\n        ]\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/jsonrpc",
+          "host": ["{{base_url}}"],
+          "path": ["jsonrpc"]
+        },
+        "description": "Llamada para crear una factura rectificativa\n\nSe ofrecen ejemplos para crear una factura total y parcial.\n\nEl ejemplo parcial 1 rectifica la factura creada en el pedido de venta del ejemplo 1, y lo mismo con el número 2."
+      },
+      "response": [
+        {
+          "name": "Full credit note",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"devel-conector\",\n            8,\n            \"ecommerce_connector\",\n            \"ecommerce.connector\",\n            \"external_create_credit_note\",\n            {\n                \"ecommerceId\": 1,\n                \"companyId\": 1,\n                \"origin\": \"woocommerce\",\n                \"invoiceId\": 1000,\n                \"returnType\": \"total\" // \"partial\" or \"total\"\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:18069//jsonrpc",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "18069",
+              "path": ["", "jsonrpc"]
+            }
+          },
+          "_postman_previewlanguage": null,
+          "header": null,
+          "cookie": [],
+          "body": null
+        },
+        {
+          "name": "Partial credit note - Basic 1",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_credit_note\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"invoiceId\": {{sale_id}},\n                \"returnType\": \"partial\", // \"partial\" or \"total\"\n                // \"total\": 60.50,\n                \"total_company\": 60.50,\n                \"lines\": [\n                    {\n                        \"productId\": 2101,\n                        \"quantity\": 1,\n                        \"unitPrice\": 60.50\n                    }\n                ]\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/jsonrpc",
+              "host": ["{{base_url}}"],
+              "path": ["jsonrpc"]
+            }
+          },
+          "_postman_previewlanguage": null,
+          "header": null,
+          "cookie": [],
+          "body": null
+        },
+        {
+          "name": "Partial credit note - Basic 2",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_credit_note\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"invoiceId\": {{sale_id}},\n                \"returnType\": \"partial\", // \"partial\" or \"total\"\n                // \"total\": 60.50,\n                \"total_company\": 60.50,\n                \"lines\": [\n                    {\n                        \"productId\": 1177,\n                        \"quantity\": 1,\n                        \"unitPrice\": 43.80,\n                        \"discount\": 10\n                    }\n                ]\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/jsonrpc",
+              "host": ["{{base_url}}"],
+              "path": ["jsonrpc"]
+            }
+          },
+          "_postman_previewlanguage": null,
+          "header": null,
+          "cookie": [],
+          "body": null
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "sale_id",
+      "value": "1000",
+      "type": "string"
+    },
+    {
+      "key": "base_url",
+      "value": "http://localhost:18069/",
+      "type": "string"
+    },
+    {
+      "key": "db_name",
+      "value": "devel-conector",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "8",
+      "type": "string"
+    },
+    {
+      "key": "user_passwd",
+      "value": "ecommerce_connector",
+      "type": "string"
+    },
+    {
+      "key": "ecommerce_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "origin",
+      "value": "woocommerce",
+      "type": "string"
+    }
+  ]
+}

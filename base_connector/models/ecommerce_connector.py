@@ -11,7 +11,355 @@ from odoo.tools import float_is_zero
 
 
 class EcommerceConnector(models.Model):
-    _inherit = "ecommerce.connector"
+    _name = "ecommerce.connector"
+    _description = "Ecommerce Connector"
+
+    def _write_errors(self, errors, new_error):
+        """Returns errors string after adding a new error
+
+        :param errors: string with current errors
+        :param new_error: string with new error to be added
+        """
+        return f"{errors}{new_error}\n"
+
+    @api.model
+    def _get_company(self, values):
+        company = int(values.get("companyId"))
+        company_id = self.env["res.company"].search([("id", "=", company)])
+        error = False
+        if not company_id:
+            error = "Company not found."
+        elif not company_id.accept_ecommerce_connector:
+            error = "The company does not accept the external call."
+        return company_id, error
+
+    @api.model
+    def _get_ecommerce_connection(self, values, company_id):
+        ecommerce_connection = self.env["ecommerce.connection"].search(
+            [
+                ("ecommerce_id", "=", int(values.get("ecommerceId"))),
+                ("company_id", "=", company_id.id),
+            ],
+            limit=1,
+        )
+        error = False
+        if not ecommerce_connection:
+            error = "Ecommerce Connection not found."
+        return ecommerce_connection, error
+
+    def get_country(self, code):
+        """Returns country record identified by the code
+
+        :param code: string with country code
+        """
+        country_id = False
+        if code:
+            country_id = self.env["res.country"].search([("code", "=", code)], limit=1)
+        return country_id
+
+    def get_province(self, country, code):
+        """Returns province record associated to given country and code
+
+        :param country: record of res.country
+        :param code: string with province code
+        """
+        province_id = self.env["res.country.state"]
+        if country and code:
+            province_id = self.env["res.country.state"].search(
+                [("country_id", "=", country.id), ("code", "=", code)], limit=1
+            )
+        return province_id
+
+    def _get_contact_domain(self, values, ecommerce_connection):
+        domain = []
+        is_company = values.get("customer").get("typeClient") == "business"
+        if ecommerce_connection.contact_search_rule == "ecommerce_id":
+            ecommerce_partner_id = self.env["ecommerce.partner"].search(
+                [
+                    ("ecommerce_connection_id", "=", ecommerce_connection.id),
+                    ("ecommerce_id", "=", int(values.get("customer").get("id"))),
+                ],
+                limit=1,
+            )
+            if ecommerce_partner_id:
+                contact_type = (
+                    "person"
+                    if values.get("customer").get("typeClient") == "individual"
+                    else "company"
+                )
+                if (
+                    ecommerce_connection.contact_search_partner_type
+                    and ecommerce_partner_id.partner_id.company_type == contact_type
+                ) or not ecommerce_connection.contact_search_partner_type:
+                    domain = [("id", "=", ecommerce_partner_id.partner_id.id)]
+        elif ecommerce_connection.contact_search_rule == "email":
+            domain = [
+                ("email", "=ilike", values.get("customer").get("email")),
+                ("parent_id", "=", False),
+                ("company_id", "in", [False, int(values.get("companyId"))]),
+            ]
+            if ecommerce_connection.contact_search_partner_type:
+                domain += [("is_company", "=", is_company)]
+        elif ecommerce_connection.contact_search_rule == "vat":
+            domain = [
+                ("parent_id", "=", False),
+                ("company_id", "in", [False, int(values.get("companyId"))]),
+            ]
+            if ecommerce_connection.contact_search_partner_type:
+                domain += [("is_company", "=", is_company)]
+            vat = values.get("customer").get("vat")
+            vat_domain = [("vat", "=ilike", vat)]
+            country_id = self.get_country(
+                values.get("shippingAddress", {}).get("countryCode")
+                or values.get("customer").get("countryCode")
+            )
+            if country_id:
+                if vat.startswith(country_id.code):
+                    vat_with_code = vat
+                    vat = vat[len(country_id.code) :]
+                else:
+                    vat_with_code = f"{country_id.code}{vat}"
+                vat_domain = [
+                    "|",
+                    ("vat", "=ilike", vat),
+                    ("vat", "=ilike", vat_with_code),
+                ]
+            domain = vat_domain + domain
+        elif ecommerce_connection.contact_search_rule == "contact_info":
+            name = ""
+            if is_company:
+                name = values.get("customer").get("comercialName")
+            else:
+                name = values.get("customer").get("firstname")
+                if values.get("customer").get("lastname"):
+                    name = f"{name} {values.get('customer').get('lastname')}"
+            domain = [
+                ("parent_id", "=", False),
+                ("name", "=ilike", name),
+                ("email", "=ilike", values.get("customer").get("email")),
+                (
+                    "phone",
+                    "=ilike",
+                    values.get("customer").get("phone")
+                    if values.get("customer").get("phone") is not None
+                    else False,
+                ),
+                (
+                    "mobile",
+                    "=ilike",
+                    values.get("customer").get("mobile")
+                    if values.get("customer").get("mobile") is not None
+                    else False,
+                ),
+                (
+                    "vat",
+                    "=ilike",
+                    values.get("customer").get("vat")
+                    if values.get("customer").get("vat") is not None
+                    else False,
+                ),
+                ("company_id", "in", [False, int(values.get("companyId"))]),
+            ]
+            if ecommerce_connection.contact_search_partner_type:
+                domain += [("is_company", "=", is_company)]
+        return domain
+
+    def _get_contact(self, values, ecommerce_connection):
+        """Returns a res.partner record with the given values
+
+        :param values: dictionary with the contact data
+        :param ecommerce_connection: ecommerce.connection record
+        """
+        partner_id = False
+        domain = self._get_contact_domain(values, ecommerce_connection)
+        if domain:
+            partner_id = self.env["res.partner"].search(
+                domain,
+                limit=1,
+            )
+        if ecommerce_connection.update_contacts and partner_id:
+            self._update_partner(partner_id, values, ecommerce_connection)
+        if not partner_id:
+            partner_id = self._create_new_partner(values, ecommerce_connection)
+        return partner_id
+
+    def _get_shipping_contact(self, partner, values, ecommerce_connection):
+        """Returns a res.partner record of 'delivery' type with the given values
+
+        :param partner: parent res.partner record
+        :param values: dictionary with the contact data
+        :param ecommerce_connection: ecommerce.connection record
+        """
+        partner_id = False
+        if ecommerce_connection.shipping_address_search_rule == "ecommerce_id":
+            ecommerce_partner_id = self.env["ecommerce.partner"].search(
+                [
+                    ("ecommerce_connection_id", "=", ecommerce_connection.id),
+                    ("ecommerce_id", "=", int(values.get("shippingAddress").get("id"))),
+                ],
+                limit=1,
+            )
+            if (
+                ecommerce_partner_id
+                and ecommerce_partner_id.partner_id.type == "delivery"
+                and ecommerce_partner_id.partner_id.parent_id == partner
+            ):
+                partner_id = ecommerce_partner_id.partner_id
+        elif ecommerce_connection.shipping_address_search_rule == "email":
+            partner_id = partner.child_ids.filtered(
+                lambda a: a.type == "delivery"
+                and a.email == values.get("shippingAddress").get("email")
+            )
+        elif ecommerce_connection.shipping_address_search_rule == "contact_info":
+            name = values.get("shippingAddress").get("firstname")
+            if values.get("shippingAddress").get("lastname"):
+                name = "{} {}".format(
+                    name, values.get("shippingAddress").get("lastname")
+                )
+            country_id = self.get_country(
+                values.get("shippingAddress").get("countryCode")
+            )
+            province_id = self.get_province(
+                country_id, values.get("shippingAddress").get("provinceCode")
+            )
+            partner_id = partner.child_ids.filtered(
+                lambda a: a.type == "delivery"
+                and a.name == name
+                and a.country_id == country_id
+                and a.state_id == province_id
+                and a.street == values.get("shippingAddress").get("street")
+                and a.street2
+                == (
+                    values.get("shippingAddress").get("street2")
+                    if values.get("shippingAddress").get("street2") is not None
+                    else False
+                )
+                and a.city
+                == (
+                    values.get("shippingAddress").get("city")
+                    if values.get("shippingAddress").get("city") is not None
+                    else False
+                )
+                and a.zip == values.get("shippingAddress").get("postcode")
+                and a.email
+                == (
+                    values.get("shippingAddress").get("email")
+                    if values.get("shippingAddress").get("email") is not None
+                    else False
+                )
+                and a.phone
+                == (
+                    values.get("shippingAddress").get("phone")
+                    if values.get("shippingAddress").get("phone") is not None
+                    else False
+                )
+                and a.mobile
+                == (
+                    values.get("shippingAddress").get("mobile")
+                    if values.get("shippingAddress").get("mobile") is not None
+                    else False
+                )
+            )
+        if not partner_id:
+            partner_id = self._create_new_shipping_partner(
+                values, partner, ecommerce_connection
+            )
+        else:
+            partner_id = partner_id[0]
+        return partner_id
+
+    def _get_invoice_contact(self, partner, values, ecommerce_connection):
+        """Returns a res.partner record of 'invoice' type with the given values
+
+        :param partner: parent res.partner record
+        :param values: dictionary with the contact data
+        :param ecommerce_connection: ecommerce.connection record
+        """
+        partner_id = False
+        if ecommerce_connection.invoice_address_search_rule == "ecommerce_id":
+            ecommerce_partner_id = self.env["ecommerce.partner"].search(
+                [
+                    ("ecommerce_connection_id", "=", ecommerce_connection.id),
+                    ("ecommerce_id", "=", int(values.get("billingAddress").get("id"))),
+                ],
+                limit=1,
+            )
+            if (
+                ecommerce_partner_id
+                and ecommerce_partner_id.partner_id.type == "invoice"
+                and ecommerce_partner_id.partner_id.parent_id == partner
+            ):
+                partner_id = ecommerce_partner_id.partner_id
+        elif ecommerce_connection.invoice_address_search_rule == "email":
+            partner_id = partner.child_ids.filtered(
+                lambda a: a.type == "invoice"
+                and a.email == values.get("billingAddress").get("email")
+            )
+        elif ecommerce_connection.invoice_address_search_rule == "contact_info":
+            name = values.get("billingAddress").get("firstname")
+            if values.get("billingAddress").get("lastname"):
+                name = "{} {}".format(
+                    name, values.get("billingAddress").get("lastname")
+                )
+            country_id = self.get_country(
+                values.get("billingAddress").get("countryCode")
+            )
+            province_id = self.get_province(
+                country_id, values.get("billingAddress").get("provinceCode")
+            )
+            accepted_names = [name]
+            if (
+                not ecommerce_connection.duplicate_invoice_name
+                and partner.name.upper() == name.upper()
+            ):
+                # It is necessary to include both '' and False
+                accepted_names += [False, ""]
+
+            partner_id = partner.child_ids.filtered(
+                lambda a: a.type == "invoice"
+                and a.name in accepted_names
+                and a.country_id == country_id
+                and a.state_id == province_id
+                and a.street == values.get("billingAddress").get("street")
+                and a.street2
+                == (
+                    values.get("billingAddress").get("street2")
+                    if values.get("billingAddress").get("street2") is not None
+                    else False
+                )
+                and a.city
+                == (
+                    values.get("billingAddress").get("city")
+                    if values.get("billingAddress").get("city") is not None
+                    else False
+                )
+                and a.zip == values.get("billingAddress").get("postcode")
+                and a.email
+                == (
+                    values.get("billingAddress").get("email")
+                    if values.get("billingAddress").get("email") is not None
+                    else False
+                )
+                and a.phone
+                == (
+                    values.get("billingAddress").get("phone")
+                    if values.get("billingAddress").get("phone") is not None
+                    else False
+                )
+                and a.mobile
+                == (
+                    values.get("billingAddress").get("mobile")
+                    if values.get("billingAddress").get("mobile") is not None
+                    else False
+                )
+            )
+        if not partner_id:
+            partner_id = self._create_new_invoice_partner(
+                values, partner, ecommerce_connection
+            )
+        else:
+            partner_id = partner_id[0]
+        return partner_id
 
     def _get_national_fiscal_position(self, country, company):
         """Returns an account.fiscal.position record with the basic fiscal position
@@ -288,6 +636,101 @@ class EcommerceConnector(models.Model):
             errors = self._write_errors(errors, "Date order is missing.")
         return errors
 
+    def _check_customer_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
+        if not excluded_fields:
+            excluded_fields = []
+        if not values.get("customer"):
+            errors = self._write_errors(errors, "Customer is missing.")
+        if "customer.id" not in excluded_fields and not values.get("customer").get(
+            "id"
+        ):
+            errors = self._write_errors(errors, "Ecommerce Customer ID is missing.")
+        if not values.get("customer").get("firstname"):
+            errors = self._write_errors(errors, "Customer firstname is missing.")
+        if "customer.email" not in excluded_fields and not values.get("customer").get(
+            "email"
+        ):
+            errors = self._write_errors(errors, "Customer email is missing.")
+        if not values.get("customer").get("typeClient"):
+            errors = self._write_errors(errors, "Customer type client is missing.")
+        if (
+            "customer.vat" not in excluded_fields
+            and values.get("customer").get("typeClient") == "business"
+            and not values.get("customer").get("vat")
+        ):
+            errors = self._write_errors(errors, "Customer VAT is missing.")
+        return errors
+
+    def _check_shipping_address_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
+        if not excluded_fields:
+            excluded_fields = []
+        if not values.get("shippingAddress"):
+            errors = self._write_errors(errors, "Shipping address is missing.")
+        if "shippingAddress.id" not in excluded_fields and not values.get(
+            "shippingAddress"
+        ).get("id"):
+            errors = self._write_errors(
+                errors, "Ecommerce shipping address ID is missing."
+            )
+        if "shippingAddress.firstname" not in excluded_fields and not values.get(
+            "shippingAddress"
+        ).get("firstname"):
+            errors = self._write_errors(
+                errors, "Shipping address firstname is missing."
+            )
+        if "shippingAddress.countryCode" not in excluded_fields and not values.get(
+            "shippingAddress"
+        ).get("countryCode"):
+            errors = self._write_errors(
+                errors, "Shipping address country code is missing."
+            )
+        if "shippingAddress.street" not in excluded_fields and not values.get(
+            "shippingAddress"
+        ).get("street"):
+            errors = self._write_errors(errors, "Shipping address street is missing.")
+        if "shippingAddress.postcode" not in excluded_fields and not values.get(
+            "shippingAddress"
+        ).get("postcode"):
+            errors = self._write_errors(errors, "Shipping address postcode is missing.")
+        return errors
+
+    def _check_billing_address_mandatory_fields(
+        self, errors, values, company_id, ecommerce_connection, excluded_fields=False
+    ):
+        if not excluded_fields:
+            excluded_fields = []
+        if not values.get("billingAddress"):
+            errors = self._write_errors(errors, "Billing address is missing.")
+        if "billingAddress.id" not in excluded_fields and not values.get(
+            "billingAddress"
+        ).get("id"):
+            errors = self._write_errors(
+                errors, "Ecommerce billing address ID is missing."
+            )
+        if "billingAddress.firstname" not in excluded_fields and not values.get(
+            "billingAddress"
+        ).get("firstname"):
+            errors = self._write_errors(errors, "Billing address firstname is missing.")
+        if "billingAddress.countryCode" not in excluded_fields and not values.get(
+            "billingAddress"
+        ).get("countryCode"):
+            errors = self._write_errors(
+                errors, "Billing address country code is missing."
+            )
+        if "billingAddress.street" not in excluded_fields and not values.get(
+            "billingAddress"
+        ).get("street"):
+            errors = self._write_errors(errors, "Billing address street is missing.")
+        if "billingAddress.postcode" not in excluded_fields and not values.get(
+            "billingAddress"
+        ).get("postcode"):
+            errors = self._write_errors(errors, "Billing address postcode is missing.")
+        return errors
+
     def _check_payment_mandatory_fields(
         self, errors, values, company_id, ecommerce_connection
     ):
@@ -501,6 +944,29 @@ class EcommerceConnector(models.Model):
             errors, values, company_id, ecommerce_connection
         )
 
+        return errors
+
+    def _check_has_country(self, errors, company_id):
+        """Returns a string with the errors
+
+        :param errors: string with the current errors
+        :param company_id: res.company record to be checked
+        """
+        if not company_id.country_id:
+            errors = self._write_errors(errors, "Company has no country.")
+        return errors
+
+    def _check_company(self, errors, values):
+        """Returns a string with the errors
+
+        :param errors: string with the current errors
+        :param values: values to be checked
+        """
+        if values.get("companyId"):
+            if not self.env["res.company"].search(
+                [("id", "=", int(values.get("companyId")))]
+            ):
+                errors = self._write_errors(errors, "Company not found.")
         return errors
 
     def _check_payments(self, errors, values):
@@ -1203,6 +1669,121 @@ class EcommerceConnector(models.Model):
             vals["company_id"] = ecommerce_connection.company_id.id
         return vals
 
+    def _create_new_partner(self, values, ecommerce_connection):
+        """Returns a res.partner record with a newly created contact
+
+        :param values: dictionary with the values for the new partner
+        :param ecommerce_connection: ecommerce.connection record
+        """
+        vals = self._get_new_partner_vals(values, ecommerce_connection)
+        partner = self.env["res.partner"].create(vals)
+        return partner
+
+    def _update_partner(
+        self, partner, values, ecommerce_connection, precalculated_values=None
+    ):
+        """Sets in a res.partner record the new values sent from the ecommerce
+
+        :param partner: single partner to update
+        :param values: dictionary with the values for the new partner
+        :param ecommerce_connection: ecommerce.connection record
+        """
+        partner.ensure_one()
+        if precalculated_values is None:
+            vals = self._get_new_partner_vals(values, ecommerce_connection)
+        else:
+            vals = precalculated_values
+        vals.pop("ecommerce_partner_ids", False)
+        return partner.write(vals)
+
+    @api.model
+    def external_update_customer(self, values):
+        connector_call = self._create_connector_call(values, "update_contact")
+        company, error = self._get_company(values)
+        if error:
+            return self._create_response(connector_call, values, error)
+        ecommerce_connection, error = self._get_ecommerce_connection(values, company)
+        if error:
+            return self._create_response(
+                connector_call, values, error, ecommerce_connection
+            )
+        domain = self._get_contact_domain(values, ecommerce_connection)
+        if not domain:
+            return self._create_response(
+                connector_call,
+                values,
+                "The partner was not found",
+                ecommerce_connection,
+            )
+        partner_id = self.env["res.partner"].search(
+            domain,
+            limit=1,
+        )
+        if not partner_id:
+            error = "The partner was not found"
+        elif partner_id.filtered(lambda p: p.type in ["invoice", "delivery"]):
+            error = "The partner cannot be a invoice or delivery address"
+        if error:
+            return self._create_response(
+                connector_call, values, error, ecommerce_connection
+            )
+        self._update_partner(partner_id, values, ecommerce_connection)
+        connector_call.write(
+            {
+                "state": "done",
+            }
+        )
+        return {"status": "OK"}
+
+    def _create_new_shipping_partner(self, values, partner, ecommerce_connection):
+        """Returns a res.partner record with a newly created shipping contact
+
+        :param values: dictionary with the values for the new partner
+        :param partner: res.partner record of the parent contact
+        :param ecommerce_connection: ecommerce.connection record
+        """
+        vals = self._delivery_address_values(values)
+        vals["parent_id"] = partner.id
+        if ecommerce_connection.create_contacts_single_company:
+            vals["company_id"] = ecommerce_connection.company_id.id
+        partner = self.env["res.partner"].create(vals)
+        if values.get("shippingAddress").get("id"):
+            self.env["ecommerce.partner"].create(
+                {
+                    "partner_id": partner.id,
+                    "ecommerce_connection_id": ecommerce_connection.id,
+                    "ecommerce_id": int(values.get("shippingAddress").get("id")),
+                }
+            )
+        return partner
+
+    def _create_new_invoice_partner(self, values, partner, ecommerce_connection):
+        """Returns a res.partner record with a newly created invoice contact
+
+        :param values: dictionary with the values for the new partner
+        :param partner: res.partner record of the parent contact
+        :param ecommerce_connection: ecommerce.connection record
+        """
+        vals = self._invoice_address_values(values)
+        vals["parent_id"] = partner.id
+        if ecommerce_connection.create_contacts_single_company:
+            vals["company_id"] = ecommerce_connection.company_id.id
+        if (
+            not ecommerce_connection.duplicate_invoice_name
+            and vals["name"].upper() == partner.name.upper()
+        ):
+            vals["name"] = ""
+        partner = self.env["res.partner"].create(vals)
+        if values.get("billingAddress").get("id"):
+            self.env["ecommerce.partner"].create(
+                {
+                    "partner_id": partner.id,
+                    "ecommerce_connection_id": ecommerce_connection.id,
+                    "ecommerce_id": int(values.get("billingAddress").get("id")),
+                }
+            )
+        return partner
+
     def _create_new_product(self, template, line, ecommerce_connection):
         """Returns a product.product record with a newly created product variant
 
@@ -1541,6 +2122,83 @@ class EcommerceConnector(models.Model):
                         "company_id": company.id,
                     }
                 )
+
+    def _create_response(
+        self,
+        connector_call,
+        values,
+        errors,
+        ecommerce_connection=False,
+        payment_errors=False,
+        order_id=False,
+        move_id=False,
+    ):
+        if not errors and not payment_errors:
+            file = False
+            if move_id:
+                file = self.env["ir.actions.report"]._render_qweb_pdf(
+                    "account.account_invoices", res_ids=move_id.id
+                )[0]
+            else:
+                file = self.env["ir.actions.report"]._render_qweb_pdf(
+                    "sale.action_report_saleorder", res_ids=order_id.id
+                )[0]
+            file = base64_bytes = b64encode(file)
+            file = base64_bytes.decode("utf-8")
+            connector_call.write(
+                {
+                    "state": "done",
+                    "sale_order_id": order_id.id,
+                    "account_move_id": move_id.id if move_id else False,
+                }
+            )
+            vals = {
+                "status": "OK",
+                "result": {
+                    "sale_id": order_id.id,
+                    "invoice_id": move_id.id if move_id else False,
+                    "ecommerce_id": values.get("ecommerceId"),
+                    "pdf": file,
+                },
+            }
+        elif payment_errors:
+            if move_id:
+                move_id.button_draft()
+                move_id[0]._get_reconciled_payments().unlink()
+            vals = {
+                "status": "error",
+                "error_message": payment_errors,
+                "ecommerce_id": values.get("ecommerceId"),
+            }
+            connector_call.write(
+                {
+                    "state": "error",
+                    "error": payment_errors,
+                    "sale_order_id": order_id.id,
+                    "account_move_id": move_id.id if move_id else False,
+                }
+            )
+        else:
+            vals = {
+                "status": "error",
+                "error_message": errors,
+                "ecommerce_id": values.get("ecommerceId"),
+            }
+            connector_call.write(
+                {
+                    "state": "error",
+                    "error": errors,
+                }
+            )
+        connector_call.write(
+            {
+                "message_out": json.dumps(vals, indent=4),
+                "ecommerce_connection_id": ecommerce_connection.id
+                if ecommerce_connection
+                else False,
+            }
+        )
+        return vals
 
     def _get_additional_order_vals(self, values, ecommerce_connection):
         """To be extended by other modules so additional values can be set

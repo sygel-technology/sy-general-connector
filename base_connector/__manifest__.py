@@ -2,30 +2,32 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 {
-    "name": "Ecommerce Connector",
-    "summary": "General E-Commerce Integration",
+    "name": "Base Connector",
+    "summary": "Base of the general connector modules",
     "version": "18.0.1.0.0",
-    "category": "Ecommerce",
+    "category": "Base",
     "author": "Sygel",
     "website": "https://github.com/sygel-technology/sy-general-connector",
     "license": "AGPL-3",
     "application": False,
     "installable": True,
     "depends": [
-        "base_connector",
-        "account_payment_mode",
-        "account_payment_sale",
-        "base_vat",
-        "account_fiscal_position_partner_type",
-        "sale_management",
-        "stock_delivery",
-        # "l10n_eu_oss_oca"  # Soft dependency
+        "base",
+        "product",  # TODO: Seguro?
+        "base_vat",  # TODO: Seguro?
+
     ],
     "data": [
         "security/ecommerce_connector_security.xml",
         "security/ir.model.access.csv",
-        "views/ecommerce_connection_views.xml",
+        "views/res_company_views.xml",
         "views/ecommerce_connector_call_views.xml",
-        "views/product_pricelist_views.xml",
+        "views/ecommerce_connection_views.xml",
+        "views/ecommerce_product_views.xml",
+        "views/ecommerce_partner_views.xml",
+        "views/menuitems.xml",
+    ],
+    "demo": [
+        "security/ecommerce_connector_security_demo.xml",
     ],
 }

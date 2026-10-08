@@ -24,10 +24,8 @@
     "data": [
         "security/ecommerce_connector_security.xml",
         "security/ir.model.access.csv",
-        "data/ecommerce_connector_call_seq.xml",
         "views/ecommerce_connection_views.xml",
         "views/ecommerce_connector_call_views.xml",
         "views/product_pricelist_views.xml",
-        "views/res_company_views.xml",
     ],
 }

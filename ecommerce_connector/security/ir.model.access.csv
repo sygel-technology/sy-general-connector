@@ -1,4 +1,2 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-manage_ecommerce_connector_call,manage_ecommerce_connector_call,model_ecommerce_connector_call,base.group_system,1,1,1,1
-runner_res_currency_rate,runner_res_currency_rate,base.model_res_currency_rate,group_call_runner,1,1,1,0
 runner_ecommerce_sale_order,runner_ecommerce_sale_order,sale.model_sale_order,group_call_runner,1,1,1,1

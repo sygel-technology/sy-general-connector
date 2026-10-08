@@ -10,8 +10,6 @@ from odoo import api, fields, models
 from odoo.tools import float_is_zero
 
 
-# TODO: Pal final
-
 class EcommerceConnector(models.Model):
     _name = "ecommerce.connector"
     _description = "Ecommerce Connector"

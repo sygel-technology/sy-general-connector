@@ -62,6 +62,13 @@
                             <field name="update_contacts" />
                         </group>
                     </group>
+                    <group groups="ecommerce_connector.group_debug,base.group_no_one">
+                        <group string="Debug Mode">
+                            <div
+                            >Warning: Do not use this fields in production unless you know what you are doing</div>
+                            <field name="skip_validation_checks" />
+                        </group>
+                    </group>
                 </sheet>
             </form>
         </field>

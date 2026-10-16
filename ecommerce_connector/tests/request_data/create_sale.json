@@ -1,0 +1,112 @@
+{
+  "ecommerceId": 1,
+  "companyId": 1,
+  "origin": "woocommerce",
+  "id": 1000,
+  "number": "WEB-1000",
+  "customer": {
+    "id": 36364,
+    "firstname": "Pablo",
+    "lastname": "Test",
+    "comercialName": "COMPRAMOSTUMOTO SLU",
+    "countryCode": "ES",
+    "provinceCode": "BU",
+    "street": "C/ Test, 1",
+    "street2": "C/ Calle",
+    "city": "25027976C",
+    "postcode": "09318",
+    "vat": "16059022p",
+    "email": "test3.test@test.test",
+    "typeClient": "business",
+    "languageCode": "es_ES",
+    "mobile": "666777666"
+  },
+  "shippingAddress": {
+    "id": 36364,
+    "firstname": "Pablo",
+    "lastname": "Test",
+    "countryCode": "ES",
+    "provinceCode": "BU",
+    "street": "C/ Test, 1",
+    "street2": "C/ Calle",
+    "city": "Fuentelisendo",
+    "postcode": "09318",
+    "email": "test3.test@test.test",
+    "mobile": "666777666"
+  },
+  "billingAddress": {
+    "id": 36364,
+    "firstname": "Pablo",
+    "lastname": "Test",
+    "countryCode": "ES",
+    "provinceCode": "BU",
+    "street": "C/ Test, 1",
+    "street2": "C/ Calle",
+    "city": "Fuentelisendo",
+    "postcode": "09318",
+    "email": "test3.test@test.test",
+    "mobile": "666777666"
+  },
+  "payments": [
+    {
+      "id": 4,
+      "method": "Direct bank transfer",
+      "unitPrice": 322.34,
+      "unitPriceCompany": 322.34
+    }
+  ],
+  "shipments": [
+    {
+      "id": 2,
+      "method": "Envío España",
+      "unitPrice": 0,
+      "unitPriceCompany": 0
+    }
+  ],
+  "currencyCode": "EUR",
+  "exchangeRate": 1,
+  "notes": "",
+  "lines": [
+    {
+      "variants": {
+        "Tipo": "2 Valvulas"
+      },
+      "productName": "Reparación motor",
+      "productTemplateId": 9923,
+      "productId": 15969,
+      "productSku": "SKU15969",
+      "productBarcode": "BARCODE15969",
+      "productTaxCompany": 21,
+      "productDescription": "",
+      "productType": "service",
+      "id": 19682,
+      "quantity": 2,
+      "unitPrice": 133.2,
+      "unitPriceCompany": 133.2,
+      "total": 322.34,
+      "totalCompany": 322.34,
+      "subtotal": 266.4,
+      "subtotalCompany": 266.4,
+      "taxes": [
+        {
+          "taxId": 0,
+          "taxName": "IVA",
+          "taxRate": 21
+        }
+      ],
+      "cost": 0,
+      "costCompany": 0,
+      "discount": 0
+    }
+  ],
+  "total": 322.34,
+  "totalCompany": 322.34,
+  "taxTotal": 55.94,
+  "taxTotalCompany": 55.94,
+  "shippingTotal": 0,
+  "shippingTotalCompany": 0,
+  "dateOrder": "2026-03-30",
+  "campaign": "SEM-12",
+  "medium": "cpc",
+  "source": "google"
+}

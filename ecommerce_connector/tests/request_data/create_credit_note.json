@@ -1,0 +1,7 @@
+{
+  "ecommerceId": 1,
+  "companyId": 1,
+  "origin": "{{origin}}",
+  "invoiceId": 1000,
+  "returnType": "total"
+}

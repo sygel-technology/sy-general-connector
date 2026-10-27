@@ -1,0 +1,121 @@
+{
+  "info": {
+    "name": "base_connector_collection_v18",
+    "description": null,
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "External Read Partner",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "description": "LLamada para actualizar los datos de un cliente previamente creado",
+        "url": {
+          "raw": "{{base_url}}/jsonrpc",
+          "protocol": "",
+          "host": ["{{base_url}}"],
+          "path": ["jsonrpc"],
+          "query": [],
+          "variable": []
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_read_customer\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"customer\": {\n                    // ecommerce_id contact_search_rule search values:\n                    \"id\": 1001,\n                    \"typeClient\": \"business\",\n                    // email contact_search_rule search values:\n                    \"email\": \"pedro@example.com\",\n                    // vat contact_search_rule search values:\n                    \"vat\": \"22297786E\",\n                    \"countryCode\": \"ES\",\n                    // contact_info contact_search_rule search values:\n                    \"comercialName\": \"Pedro M S.L.\",\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Martínez\",\n                    \"phone\": \"+549060335546\",\n                    \"mobile\": \"+34666000000\"\n                    // you can also use vat and email contact_info \n                }\n            }\n        ]\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "External Update Partner",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "description": "LLamada para actualizar los datos de un cliente previamente creado",
+        "url": {
+          "raw": "{{base_url}}/jsonrpc",
+          "protocol": "",
+          "host": ["{{base_url}}"],
+          "path": ["jsonrpc"],
+          "query": [],
+          "variable": []
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_update_customer\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"customer\": {\n                    \"id\": 1001,\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Martínez\",\n                    \"comercialName\": \"Pedro M S.L.\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Las Ramblas\",\n                    \"street2\": \"Calle Mayor, 2\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08002\",\n                    \"vat\": \"22297786E\",\n                    \"email\": \"pedro@example.com\",\n                    \"typeClient\": \"business\",\n                    \"languageCode\": \"es_ES\",\n                    \"phone\": \"+549060335546\",\n                    \"mobile\": \"+34666000000\"\n                }\n            }\n        ]\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "External Create Partner",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "description": "LLamada para actualizar los datos de un cliente previamente creado",
+        "url": {
+          "raw": "{{base_url}}/jsonrpc",
+          "protocol": "",
+          "host": ["{{base_url}}"],
+          "path": ["jsonrpc"],
+          "query": [],
+          "variable": []
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"call\",\n    \"params\": {\n        \"service\": \"object\",\n        \"method\": \"execute\",\n        \"args\": [\n            \"{{db_name}}\",\n            {{user_id}},\n            \"{{user_passwd}}\",\n            \"ecommerce.connector\",\n            \"external_create_customer\",\n            {\n                \"ecommerceId\": {{ecommerce_id}},\n                \"companyId\": {{company_id}},\n                \"origin\": \"{{origin}}\",\n                \"customer\": {\n                    \"id\": 1001,\n                    \"firstname\": \"Pedro\",\n                    \"lastname\": \"Martínez\",\n                    \"comercialName\": \"Pedro M S.L.\",\n                    \"countryCode\": \"ES\",\n                    \"provinceCode\": \"B\",\n                    \"street\": \"C/ Las Ramblas\",\n                    \"street2\": \"Calle Mayor, 2\",\n                    \"city\": \"Barcelona\",\n                    \"postcode\": \"08002\",\n                    \"vat\": \"22297786E\",\n                    \"email\": \"pedro@example.com\",\n                    \"typeClient\": \"business\",\n                    \"languageCode\": \"es_ES\",\n                    \"phone\": \"+549060335546\",\n                    \"mobile\": \"+34666000000\"\n                }\n            }\n        ]\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:18069/",
+      "type": "default"
+    },
+    {
+      "key": "db_name",
+      "value": "devel-T-10216",
+      "type": "default"
+    },
+    {
+      "key": "user_id",
+      "value": "8",
+      "type": "default"
+    },
+    {
+      "key": "user_passwd",
+      "value": "ecommerce_connector",
+      "type": "default"
+    },
+    {
+      "key": "ecommerce_id",
+      "value": "1",
+      "type": "default"
+    },
+    {
+      "key": "company_id",
+      "value": "3",
+      "type": "default"
+    },
+    {
+      "key": "origin",
+      "value": "woocommerce",
+      "type": "default"
+    }
+  ]
+}

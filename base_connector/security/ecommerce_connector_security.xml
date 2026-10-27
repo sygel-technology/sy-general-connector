@@ -3,7 +3,7 @@
      License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
 <odoo noupdate="True">
     <record id="group_call_runner" model="res.groups">
-        <field name="name">Ecommerce Connector Call Runner</field>
+        <field name="name">Ecommerce Connector Call Runner.</field>
         <field name="category_id" ref="base.module_category_hidden" />
         <field
             name="implied_ids"

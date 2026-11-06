@@ -3,4 +3,3 @@
 
 from . import product_management_connector
 from . import res_company
-from . import ecommerce_connector_call

@@ -21,12 +21,14 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
-[ecommerce_connector](ecommerce_connector/) | 18.0.1.0.0 |  | General E-Commerce Integration
+[base_connector](base_connector/) | 18.0.1.1.0 |  | Base of the general connector modules
+[ecommerce_connector](ecommerce_connector/) | 18.0.2.1.0 |  | General E-Commerce Integration
+[ecommerce_connector_account_fiscal_position_partner_type](ecommerce_connector_account_fiscal_position_partner_type/) | 18.0.1.1.0 |  | Add fiscal position partner type logic to ecommerce calls
 [ecommerce_connector_sale_invoice_policy](ecommerce_connector_sale_invoice_policy/) | 18.0.1.0.1 |  | Set a default invoice policy for ecommerce sale orders.
 [ecommerce_connector_sale_order_type](ecommerce_connector_sale_order_type/) | 18.0.1.0.0 |  | Set a default sale type for ecommerce sale orders.
 [ecommerce_connector_sii](ecommerce_connector_sii/) | 18.0.1.0.0 |  | SII values and procedures for ecommerce sale orders.
-[product_management_connector](product_management_connector/) | 18.0.1.0.0 |  | Product Management Connector
-[stock_check_connector](stock_check_connector/) | 18.0.1.0.0 |  | Stock Check Connector
+[product_management_connector](product_management_connector/) | 18.0.1.1.0 |  | Product Management Connector
+[stock_check_connector](stock_check_connector/) | 18.0.1.1.0 |  | Stock Check Connector
 
 [//]: # (end addons)
 

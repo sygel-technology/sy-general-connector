@@ -4,7 +4,7 @@
 {
     "name": "Stock Check Connector",
     "summary": "Stock Check Connector",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Stock",
     "author": "Sygel",
     "website": "https://github.com/sygel-technology/sy-general-connector",

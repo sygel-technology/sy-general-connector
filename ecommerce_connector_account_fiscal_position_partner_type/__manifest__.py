@@ -3,7 +3,7 @@
 {
     "name": "Base Connector Account Fiscal Position Partner Type",
     "summary": "Add fiscal position partner type logic to ecommerce calls",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Base",
     "website": "https://github.com/sygel-technology/sy-general-connector",
     "author": "Sygel",

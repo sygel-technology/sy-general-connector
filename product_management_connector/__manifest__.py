@@ -4,7 +4,7 @@
 {
     "name": "Product Management Connector",
     "summary": "Product Management Connector",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Ecommerce",
     "author": "Sygel",
     "website": "https://github.com/sygel-technology/sy-general-connector",
